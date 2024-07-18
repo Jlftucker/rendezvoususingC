@@ -1,0 +1,7 @@
+gcc "programName".c -o compiledprogramName ----- Compile a program into a .exe
+gcc -c -Wall -Werror -fpic foo.c ------ compile library source code into position independent code (object file)
+gcc -shared -o libfoo.so foo.o ----- turn object file into shared library
+
+
+
+gcc -shared -Wl,-soname,testlib -o testlib.so -fPIC testlib.c ----- Compile a program into a shared library
