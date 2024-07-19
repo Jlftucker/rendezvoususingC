@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include<string.h>
-
+#include <stdbool.h>
 
 // Player move function that moves the player
 
@@ -53,19 +53,48 @@ int make_move(short int old_pos, short int coin, short int Ns, char graph[]){
     return new_pos;
 }
 
+/*
 
-int player_move(int player_positions[], ){
+Input
 
 
 
 
+*/
+
+
+bool win_checker(int new_player_positions[], int old_player_positions[], bool edges){
+    bool win;//Declare win variable
+    if (edges == false){//if edges is false check they are on the same node
+        
+        if (new_player_positions[0]== new_player_positions[1]){
+            win = true;
+        } 
+        else{
+            win = false;
+        }
+
+    }
+    else{//If no edges
+        if((new_player_positions[0]== new_player_positions[1]) || (old_player_positions[0] == new_player_positions[0] && old_player_positions[0] == new_player_positions[0])){
+            win = true;
+        }
+        else{
+            win = false;
+        }
+    }
+    return win;
 }
 
 
 
 int main(){
-    int new_pos;
-    new_pos = make_move(0,1,3,"cyclic");
+    bool win;
+    int new_pos[] = {0,0};
+    int old_pos[] = {1,0};
+    bool edges = false;
+    
+    win = win_checker(new_pos, old_pos,edges);
 
-    return new_pos;
+    return win;
 }
