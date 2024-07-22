@@ -1,0 +1,8 @@
+For WINDOWS
+
+__declspec( dllexport ) Add this before functions 
+
+
+And compile into a .dll file
+
+gcc -shared -o mylib.dll funcs.c

@@ -14,7 +14,7 @@ Ns -------- Integer --- Number of sites on the grap
 
 
 */
-int make_move(short int old_pos, short int coin, short int Ns, char graph[]){
+__declspec(dllexport) int make_move(short int old_pos, short int coin, short int Ns, char graph[]){
     int new_pos; //Declare new position variable
     int number_choices;//Declare variable that will be used to decide array length
 
@@ -63,7 +63,7 @@ Input
 */
 
 
-bool win_checker(int new_player_positions[], int old_player_positions[], bool edges){
+__declspec(dllexport) bool win_checker(int new_player_positions[], int old_player_positions[], bool edges){
     bool win;//Declare win variable
     if (edges == false){//if edges is false check they are on the same node
         
@@ -88,7 +88,7 @@ bool win_checker(int new_player_positions[], int old_player_positions[], bool ed
 
 
 
-int main(){
+__declspec(dllexport) int main(){
     bool win;
     int new_pos[] = {0,0};
     int old_pos[] = {1,0};
