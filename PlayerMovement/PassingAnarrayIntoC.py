@@ -1,1 +1,0 @@
-#Trying to get arrays passed into a C program
