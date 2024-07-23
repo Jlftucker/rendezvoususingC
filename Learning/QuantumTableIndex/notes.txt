@@ -1,0 +1,1 @@
+tableindexfinderworksinC but not python but this is okay as we don't need to call it explicitly from python

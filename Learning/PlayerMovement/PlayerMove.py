@@ -16,9 +16,9 @@ playermove.make_move.argtypes = (ctypes.c_int16,ctypes.c_int16,ctypes.c_int16, c
 playermove.make_move.restype = ctypes.c_int
 
 #Input variables
-oldpos =0
+oldpos =1
 coin =1
-Ns =3 
+Ns =4
 graph_ = "cyclic"
 
 
