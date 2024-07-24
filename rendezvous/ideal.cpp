@@ -4,6 +4,7 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include "cppsim/state.hpp"
 
 /*
 A function that takes both the players old positions and new positions and then checks to see if they have won
@@ -288,7 +289,7 @@ float run_game(){
 
 
     int Np =2;//Number of players variable
-    int Ns =5 ;//Number of sites in the game
+    int Ns =3 ;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
@@ -320,6 +321,10 @@ float run_game(){
     
     return win_percent;
 }
+
+
+
+
 
 int main(){
     float win_percent;
