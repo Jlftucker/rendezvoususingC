@@ -195,33 +195,49 @@ int final_counter - what part of the sub array to look at
 
 */
 
-bool player_move(int initial_pos[], char graph[], int Np, bool edge, int *quantum_table_pointer,bool check_first, int Ns, int Nm ){
+bool player_move(int initial_pos[], char graph[], int Np, bool edge, int *quantum_table_pointer,bool check_first, int Ns, int Nm, char strategy[]){
     int new_pos[Np];//Declare an array with a position per player
     bool win = false;//Declare boolean winning variable
     int i = 0;//Declare counter 
-    int j =0;
+    int j =0;//Declare player counter 
+    int coin = 0;//Declare coin variable
     int table_index; //Declare table index
-    int player_newpos;
+    int player_newpos;//Declare new player variable
+    char QuantumStrategy[] = "quantum";
+    char Classical_golow[] = "classical_go_to_lowest";
 
+    int Quantum_strategycheck = strcmp(strategy,QuantumStrategy);
+    int Classical_strategycheck = strcmp(strategy,Classical_golow);
 
     //Win check for check first games
     if (check_first == true){
-        win = win_checker(initial_pos,new_pos,check_first);//check to see if they win by landing, new_pos is an empty array so the bool needs to be false 
+        win = win_checker(initial_pos,new_pos,edge);//check to see if they win by landing, new_pos is an empty array so the bool needs to be false 
         // so that edges are not checked since this cannot occur right now
     }
     
     while(win==false && j <Nm){
         int player1position = initial_pos[0];
         int player2position = initial_pos[1];
+
+        if(Classical_strategycheck ==0){
+            coin =0;
+            }
+        else if (Quantum_strategycheck = 0)
+        {
+            coin =1;//placeholder 
+        }
+        
        //table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
        // int num_coinflips = 20000 ;
         //int potentialcoins[num_coinflips];
         //Stil needs work to pull out coin from array
         while(i <Np){//iterate through the number of players
-            new_pos[i] = make_move(initial_pos[i],0,Ns,graph);//Set new_positions = to the intial positions
+            
+            
+            new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
             i++;
         }
-        win = win_checker(new_pos,initial_pos,check_first);
+        win = win_checker(new_pos,initial_pos,edge);
         initial_pos[0] = new_pos[0];//set positions for next move
         initial_pos[1] = new_pos[1];  
         
@@ -236,7 +252,7 @@ bool player_move(int initial_pos[], char graph[], int Np, bool edge, int *quantu
 
 */
 
-float many_runs(char graph[], int Np, bool edge, int *quantum_table_pointer,bool check_first, int Ns, int Nr, int Nm  ){
+float many_runs(char graph[], int Np, bool edge, int *quantum_table_pointer,bool check_first, int Ns, int Nr, int Nm, char strategy[]){
     int initial_pos[Np];//Initial position array
     bool win; //win variable
     float num_wins = 0;//number of wins counter
@@ -254,7 +270,7 @@ float many_runs(char graph[], int Np, bool edge, int *quantum_table_pointer,bool
             j++;
         }
         
-        win = player_move(initial_pos,graph,Np,edge,*quantum_table_pointer,check_first,Ns,Nm);
+        win = player_move(initial_pos,graph,Np,edge,*quantum_table_pointer,check_first,Ns,Nm,strategy);
 
         if (win == true){
             num_wins++;
@@ -267,22 +283,25 @@ float many_runs(char graph[], int Np, bool edge, int *quantum_table_pointer,bool
 }
 
 
-
-
-float main(){
-
-    int Ns =3;
-    int Nr = 1000000;
-    int Nm = 1;
-    float win_percent;
-    bool check_first =true;
-    float number_wins;
+float run_game(){
+    float win_percent;//declare win percent variable
+    float number_wins;//declare number of wins variable
     int number_of_combos;//declare number of combos
 
-    if(check_first == true){
+
+    int Np =2;//Number of players variable
+    int Ns =5 ;//Number of sites in the game
+    int Nr = 1000000;//Number of runs of the game
+    int Nm = 1;//Number of moves players are allowed to make
+    bool check_first = true;//Check first or check later variant of the game
+    bool edge = false;//Are players allowed to meet one edges
+    char graph[] = "cyclic";//What graph are we playing on 
+    char strategy[] = "classical_go_to_lowest";//What Strategy are the players using
+
+    if(check_first == true){//If check first is true
         number_of_combos = (Ns*Ns) - Ns;//calculate the number of combos, minus Ns combos for check first
     }
-    else{
+    else{//if check later is true
         number_of_combos = (Ns*Ns);//calculate the number of combos, Ns^2
     }
 
@@ -290,22 +309,24 @@ float main(){
     int *quantum_table_pointer;//define integer pointer 
     quantum_table_pointer = &quantum_table;//Set the pointer to the table
 
+    clock_t start = clock();//Start clock
+    number_wins = many_runs(graph,2,edge,quantum_table_pointer,true,Ns,Nr,Nm,strategy);//run many_runs function
+    printf("Number of wins: %f\n", number_wins);//Prints number of wins
+    clock_t end = clock();//finish clock
 
-    
-    
-
-
-    clock_t start = clock();
-    number_wins = many_runs("cyclic",2,false,quantum_table_pointer,true,Ns,Nr,Nm);
-    printf("Number of wins: %f\n", number_wins);
-    clock_t end = clock();
-
-    double total_time = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Execution time: %.6f seconds\n", total_time);
+    double total_time = (double)(end - start) / CLOCKS_PER_SEC;//calculate execution time
+    printf("Execution time: %.6f seconds\n", total_time);//Print execution time
 
     
 
-    win_percent = number_wins/Nr;
-    printf("The win percentage is : %f\n", win_percent);
+    win_percent = number_wins/Nr;//calculate win percentage
+    printf("The win percentage is : %f\n", win_percent);//Print win percentage
     return win_percent;
+}
+
+float main(){
+    float win_percent;
+
+    win_percent = run_game();
+    
 }
