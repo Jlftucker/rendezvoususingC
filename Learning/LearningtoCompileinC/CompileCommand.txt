@@ -7,4 +7,4 @@ gcc -shared -o libfoo.so foo.o ----- turn object file into shared library
 gcc -shared -o mylib.dll funcs.c -- turn file into dll
 
 
-gcc -shared -Wl,-soname,testlib -o testlib.so -fPIC testlib.c ----- Compile a program into a shared library
+gcc -shared -Wl,-soname,testlib -o testlib.so -fPIC testlib.c ----- Compile a program into a shared library 

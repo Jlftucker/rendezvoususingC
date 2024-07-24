@@ -134,8 +134,8 @@ int quantum_table_index(short int Ns, short int player1position, short int playe
     int cyclegraph_check = strcmp(graph, cycle);
 
     if (cyclegraph_check == 0) { // If we have a cycle graph
-        for (int i = 0; i < Ns; i++) { // iterate through first player sites
-            for (int j = 0; j < Ns; j++) { // iterate through second player sites
+        for (int i = 0; i < Ns;) { // iterate through first player sites
+            for (int j = 0; j < Ns;) { // iterate through second player sites
                 if (i == j && check_first == true) { // if possible positions match check to see if it's allowed
                     continue; // continue j loop
                 } else if (i == player1position && j == player2position) { // if player positions match the indices then we have our variable
@@ -144,7 +144,9 @@ int quantum_table_index(short int Ns, short int player1position, short int playe
                 else{
                     counter++;
                 }
+            j++;    
             }
+          i++;  
         }
     }
 
@@ -168,15 +170,9 @@ int randomnumber - random number that is generated
 
 int random(int N){
     int randomnumber = rand() % N;
-    printf("%d\n", randomnumber);
+    //printf("%d\n", randomnumber); Debug statement
     return randomnumber;
 }
-
-
-
-
-
-
 
 
 /*
@@ -214,64 +210,73 @@ bool player_move(int initial_pos[], char graph[], int Np, bool edge, int *quantu
         // so that edges are not checked since this cannot occur right now
     }
     
-    while(win==false && j <Nm, j++){
+    while(win==false && j <Nm){
         int player1position = initial_pos[0];
         int player2position = initial_pos[1];
-
-        table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
-
-        int num_coinflips = 20000 ;
-        int potentialcoins[num_coinflips];
+       //table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
+       // int num_coinflips = 20000 ;
+        //int potentialcoins[num_coinflips];
         //Stil needs work to pull out coin from array
-
-        while(i <Np, i++){//iterate through the number of players
+        while(i <Np){//iterate through the number of players
             new_pos[i] = make_move(initial_pos[i],0,Ns,graph);//Set new_positions = to the intial positions
+            i++;
         }
-            win = win_checker(new_pos,initial_pos,check_first);
-            initial_pos[0] = new_pos[0];//set positions for next move
-            initial_pos[1] = new_pos[1];  
+        win = win_checker(new_pos,initial_pos,check_first);
+        initial_pos[0] = new_pos[0];//set positions for next move
+        initial_pos[1] = new_pos[1];  
+        
+        j++;
     }
 
     return win ;
 }
 
 
-
-
 /*
 
 */
 
-void many_runs(char graph[], int Np, bool edge, int *quantum_table_pointer,bool check_first, int Ns, int Nr, int Nm  ){
+float many_runs(char graph[], int Np, bool edge, int *quantum_table_pointer,bool check_first, int Ns, int Nr, int Nm  ){
     int initial_pos[Np];//Initial position array
     bool win; //win variable
-    int num_wins = 0;//number of wins counter
-    int i = 0;//counter for number of runs
-    int j =0;//counter for number of players
-
-    while(i<Nr, i++){//Number of runs loop
-
-        while (j<Np, j++ )// Setup the game 
-        {
-            srand(time(NULL));
-            initial_pos[j] = random(Ns)
-
+    float num_wins = 0;//number of wins counter
+    int i = 0;//counter for number of runs//counter for number of players
+    srand(time(NULL));//seed random number generator
+    //printf("%s\n", "Loop starting");
+    //printf("%d\n", i);
+    //printf("%d\n", Nr);
+    while(i<Nr){//Number of runs loop
+        //printf("%s\n", "Loop is here now");
+        int j =0;//counter for number of players
+        while (j<Np){// Setup the game 
+            initial_pos[j] = random(Ns);
+            //printf("Initial position of player %d: %d\n", j + 1, initial_pos[j]); Debug statement
+            j++;
         }
         
-        win = player_move(initial_pos,graph,Np,edge,*quantum_table_pointer,check_first,Ns,Nr);
+        win = player_move(initial_pos,graph,Np,edge,*quantum_table_pointer,check_first,Ns,Nm);
+
+        if (win == true){
+            num_wins++;
+            win = false;
+        }
+        i++;
     }
 
+    return(num_wins);
 }
 
 
 
 
-
-void main(){
+float main(){
 
     int Ns =3;
+    int Nr = 10000000;
+    int Nm = 1;
+    float win_percent;
     bool check_first =true;
-
+    float number_wins;
     int number_of_combos;//declare number of combos
 
     if(check_first == true){
@@ -285,7 +290,22 @@ void main(){
     int *quantum_table_pointer;//define integer pointer 
     quantum_table_pointer = &quantum_table;//Set the pointer to the table
 
-    many_runs("cyclic",2,false,quantum_table_pointer,true,Ns,2)
 
-    return;
+    
+    
+
+
+    clock_t start = clock();
+    number_wins = many_runs("cyclic",2,false,quantum_table_pointer,true,Ns,Nr,Nm);
+    printf("Number of wins: %f\n", number_wins);
+    clock_t end = clock();
+
+    double total_time = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("Execution time: %.6f seconds\n", total_time);
+
+    
+
+    win_percent = number_wins/Nr;
+    printf("The win percentage is : %f\n", win_percent);
+    return win_percent;
 }
