@@ -4,7 +4,7 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
-#include "cppsim/state.hpp"
+
 
 /*
 A function that takes both the players old positions and new positions and then checks to see if they have won
