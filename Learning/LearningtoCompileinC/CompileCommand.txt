@@ -8,3 +8,6 @@ gcc -shared -o mylib.dll funcs.c -- turn file into dll
 
 
 gcc -shared -Wl,-soname,testlib -o testlib.so -fPIC testlib.c ----- Compile a program into a shared library 
+
+
+g++ -I C:/Boost/boost_1_85_0 test.cpp -o complete test   ---- compile a program in cpp Using -I to show where the header files are for external package use
