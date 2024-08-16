@@ -233,8 +233,6 @@ bool player_move(int initial_pos[], char graph[], int Np, bool edge, int quantum
         //int potentialcoins[num_coinflips];
         //Stil needs work to pull out coin from array
         while(i <Np){//iterate through the number of players
-
-
             new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
             i++;
         }
@@ -285,11 +283,10 @@ float many_runs(char graph[], int Np, bool edge, int quantum_table_pointer,bool 
 
 
 float run_game(){
+
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
     int number_of_combos;//declare number of combos
-
-
     int Np =2;//Number of players variable
     int Ns =3 ;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
@@ -315,7 +312,7 @@ float run_game(){
     clock_t end = clock();//finish clock
 
     double total_time = (double)(end - start) / CLOCKS_PER_SEC;//calculate execution time
-    //std::cout<< total_time ;//Print execution time
+    std::cout<< total_time ;//Print execution time
 
 
 
@@ -325,6 +322,58 @@ float run_game(){
 }
 
 
+/*
+Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
+
+
+
+*/
+
+
+int quantum_table_generator(char graph[], int Ns, int Np){
+    int reps =97;
+
+    while(reps<100){
+    // Manually seed the random number generator
+    std::random_device rd;
+    std::mt19937 gen(rd()); // Non-deterministic seed
+
+    //We need to generate random seeds so that when we run the program after compile it doesn't give the same circuit measurement each time
+
+    gen.seed(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));// Seed based on the current time for additional randomness
+
+    RandomDevices::get_instance().get_prng() = gen; // Set the random number generator in qpp
+
+    char cycle[] = "cyclic"; // String array for graph names
+    int cyclegraph_check = std::strcmp(graph, cycle);// compare the two character arrays if they are the same this will return 0
+    if(cyclegraph_check ==  0){//If graph is cyclic
+
+        QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
+        qc.gate(gt.H,0);//apply a Hadamard gate to the first qubit
+        qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
+        qc.measure({0,1});//attach measurement to classical bits
+        // initialize the quantum engine with a circuit
+        QEngine engine{qc};
+
+        // display the quantum circuit and its corresponding resources
+        //  std::cout << qc << "\n\n" << qc.get_resources() << "\n\n";
+        // execute the entire circuit
+        engine.execute();
+        // Measure qubit 0
+        auto measurement_results = engine.get_dits();
+        // display the measurement statistics
+       std::cout << "Measurement result: " << measurement_results[0] << measurement_results[1] << std::endl;
+        reps = reps +1;
+        }
+
+
+
+        }
+
+
+    return 0;
+}
+
 
 
 
@@ -333,20 +382,9 @@ int main(){
 
     //win_percent = run_game();
     //std::cout << win_percent;
+    char graph[] = "cyclic";
 
-
-    ket psi0= 00_ket; // |00
-    cmat U = gt.CNOT * kron(gt.H, gt.Id2);//Apply a Cnot after applying a hadamard to the first qubit and an identity to the second
-    ket result = U* psi0; // Apply our operation to |00> to create our bell state
-    std::cout << "Resulting state: \n" << disp(result) << "\n";
-
-    //Now lets measure it
-
-    auto alice_measure = measure(result,gt.Z,{0});//measure Alice's result in the Z basis
-    auto bob_measure = measure(result,gt.Z,{1});//measure Alice's result in the Z basis
-
-    std::cout << ">> Alice result: \n" << std::get<0>(alice_measure) << "\n";
-    std::cout << ">> Bob result: \n" << std::get<0>(bob_measure) <<"\n";
+     quantum_table_generator(graph,3,2);
 
 
     return 0;

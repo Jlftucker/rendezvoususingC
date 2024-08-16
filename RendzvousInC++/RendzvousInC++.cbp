@@ -13,6 +13,11 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="C:/Users/Josht/Documents/PHD/rendezvoususingC/RendzvousInC++/" />
+					<Add directory="$(#boost.lib)" />
+					<Add directory="../../../../../../Program Files/C++Libraries/qpp/include" />
+					<Add directory="../../../../../../Program Files/C++Libraries/eigen-3.4.0" />
+					<Add directory="../../../../../../Program Files/C++Libraries/qasmtools/include" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -30,7 +35,11 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c++17" />
 		</Compiler>
+		<Unit filename="../rendezvous/ideal.cpp" />
+		<Unit filename="quantumcircuit.cpp" />
+		<Unit filename="test.cpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
