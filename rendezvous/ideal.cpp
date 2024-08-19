@@ -3,9 +3,13 @@
 #include <ctime>
 #include <cstring>
 #include <vector>
+#include <random>
+#include <chrono>
+#include <string>
 #include <algorithm>
 #include "qpp/qpp.h"
 #include <boost/version.hpp>
+#include <typeinfo>
 
 using namespace qpp;
 /*
@@ -70,7 +74,7 @@ Ns -------- Integer --- Number of sites on the grap
 */
 
 
-int make_move(short int old_pos, short int coin, short int Ns, char graph[]){
+int make_move(short int old_pos, short int coin, short int Ns, const char graph[]){
     int new_pos; //Declare new position variable
     int number_choices;//Declare variable that will be used to decide array length
 
@@ -130,7 +134,7 @@ int final_counter - what part of the sub array to look at
 */
 
 
-int quantum_table_index(short int Ns, short int player1position, short int player2position, char graph[], bool check_first) {
+int quantum_table_index(short int Ns, short int player1position, short int player2position, const char graph[], bool check_first) {
     int counter = 0; // counter for array
     int final_counter = -1; // initialize final_counter
 
@@ -196,14 +200,16 @@ int final_counter - what part of the sub array to look at
 
 */
 
-bool player_move(int initial_pos[], char graph[], int Np, bool edge, int quantum_table_pointer,bool check_first, int Ns, int Nm, char strategy[]){
+bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::vector<std::vector<std::string>> quantum_table,bool check_first, int Ns, int Nm, const char strategy[]){
     int new_pos[Np];//Declare an array with a position per player
     bool win = false;//Declare boolean winning variable
     int i = 0;//Declare counter
     int j =0;//Declare player counter
     int coin = 0;//Declare coin variable
     int table_index; //Declare table index
-    int player_newpos;//Declare new player variable
+    int row_number;//declare row number
+    std::string coins;//declare string array for coins
+    int player_coins;
     char QuantumStrategy[] = "quantum";
     char Classical_golow[] = "classical_go_to_lowest";
 
@@ -220,19 +226,22 @@ bool player_move(int initial_pos[], char graph[], int Np, bool edge, int quantum
         int player1position = initial_pos[0];
         int player2position = initial_pos[1];
 
-        if(Classical_strategycheck ==0){
+        if(Classical_strategycheck ==0){//if classical coin then each player uses the same go to lowest coin and we declare outside the loop
             coin =0;
-            }
-        else if (Quantum_strategycheck = 0)
-        {
-            coin =1;//placeholder
+            //std::cout << "ping you are classical";
+        }
+        else if (Quantum_strategycheck == 0){// if quantum coin we need to declare a placeholder variable as the coin is a string of each players coin now so we need to split them
+            //std::cout << "ping you are quantum";
+            table_index = random(quantum_table[0].size());//since the same number of shots per row we just take the length of one row and generate a number between 0 and that (0 inclusive)
+            //std::cout << "Table size" << quantum_table[0].size() << std::endl;
+            row_number =  quantum_table_index(Ns,player1position,player2position,graph,check_first);//Calculate what row we need to look at
+            coins = quantum_table[row_number][table_index];//create a new variable to hold the value of the coins
+
+            std::cout << coins[1] << std::endl ;//debug statement
         }
 
-       //table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
-       // int num_coinflips = 20000 ;
-        //int potentialcoins[num_coinflips];
-        //Stil needs work to pull out coin from array
         while(i <Np){//iterate through the number of players
+           // if(Quantum_strategycheck == 0){}
             new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
             i++;
         }
@@ -251,15 +260,13 @@ bool player_move(int initial_pos[], char graph[], int Np, bool edge, int quantum
 
 */
 
-float many_runs(char graph[], int Np, bool edge, int quantum_table_pointer,bool check_first, int Ns, int Nr, int Nm, char strategy[]){
+float many_runs(const char graph[], int Np, bool edge, std::vector<std::vector<std::string>> quantum_table,bool check_first, int Ns, int Nr, int Nm, const char strategy[]){
     int initial_pos[Np];//Initial position array
     bool win; //win variable
     float num_wins = 0;//number of wins counter
     int i = 0;//counter for number of runs//counter for number of players
     srand(time(NULL));//seed random number generator
-    //printf("%s\n", "Loop starting");
-    //printf("%d\n", i);
-    //printf("%d\n", Nr);
+
     while(i<Nr){//Number of runs loop
         //printf("%s\n", "Loop is here now");
         int j =0;//counter for number of players
@@ -269,7 +276,7 @@ float many_runs(char graph[], int Np, bool edge, int quantum_table_pointer,bool 
             j++;
         }
 
-        win = player_move(initial_pos,graph,Np,edge,quantum_table_pointer,check_first,Ns,Nm,strategy);
+        win = player_move(initial_pos,graph,Np,edge,quantum_table,check_first,Ns,Nm,strategy);
 
         if (win == true){
             num_wins++;
@@ -282,70 +289,18 @@ float many_runs(char graph[], int Np, bool edge, int quantum_table_pointer,bool 
 }
 
 
-float run_game(){
-
-    float win_percent;//declare win percent variable
-    float number_wins;//declare number of wins variable
-    int number_of_combos;//declare number of combos
-    int Np =2;//Number of players variable
-    int Ns =3 ;//Number of sites in the game
-    int Nr = 1000000;//Number of runs of the game
-    int Nm = 1;//Number of moves players are allowed to make
-    bool check_first = true;//Check first or check later variant of the game
-    bool edge = false;//Are players allowed to meet one edges
-    char graph[] = "cyclic";//What graph are we playing on
-    char strategy[] = "classical_go_to_lowest";//What Strategy are the players using
-
-    if(check_first == true){//If check first is true
-        number_of_combos = (Ns*Ns) - Ns;//calculate the number of combos, minus Ns combos for check first
-    }
-    else{//if check later is true
-        number_of_combos = (Ns*Ns);//calculate the number of combos, Ns^2
-    }
-
-    int quantum_table_pointer =0 ;//define integer pointer
-
-
-    clock_t start = clock();//Start clock
-    number_wins = many_runs(graph,2,edge,quantum_table_pointer,true,Ns,Nr,Nm,strategy);//run many_runs function
-
-    clock_t end = clock();//finish clock
-
-    double total_time = (double)(end - start) / CLOCKS_PER_SEC;//calculate execution time
-    std::cout<< total_time ;//Print execution time
-
-
-
-    win_percent = number_wins/Nr;//calculate win percentage
-
-    return win_percent;
-}
-
-
 /*
-Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
 
-
+Function quantum_circuit_maker - Generates the quantum circuit result
 
 */
 
-
-int quantum_table_generator(char graph[], int Ns, int Np){
-    int reps =97;
-
-    while(reps<100){
-    // Manually seed the random number generator
-    std::random_device rd;
-    std::mt19937 gen(rd()); // Non-deterministic seed
-
-    //We need to generate random seeds so that when we run the program after compile it doesn't give the same circuit measurement each time
-
-    gen.seed(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));// Seed based on the current time for additional randomness
-
-    RandomDevices::get_instance().get_prng() = gen; // Set the random number generator in qpp
-
+std::string quantum_circuit_maker(const char graph[], int player1_position, int player2_position){
+    std::string both_results;
     char cycle[] = "cyclic"; // String array for graph names
-    int cyclegraph_check = std::strcmp(graph, cycle);// compare the two character arrays if they are the same this will return 0
+    int cyclegraph_check = std::strcmp(graph, cycle);
+
+
     if(cyclegraph_check ==  0){//If graph is cyclic
 
         QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
@@ -362,29 +317,103 @@ int quantum_table_generator(char graph[], int Ns, int Np){
         // Measure qubit 0
         auto measurement_results = engine.get_dits();
         // display the measurement statistics
-       std::cout << "Measurement result: " << measurement_results[0] << measurement_results[1] << std::endl;
-        reps = reps +1;
-        }
+        both_results = std::to_string(measurement_results[0]) + std::to_string(measurement_results[1]);//convert to strings to store them
 
-
-
-        }
-
-
-    return 0;
+        //std::cout << "Measurement result: " << both_results << std::endl;
+    }
+    return(both_results);
 }
 
 
 
+/*
+Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
+
+
+
+*/
+
+std::vector<std::vector<std::string>> quantum_table_generator(
+    const char graph[], int Ns, int Np, bool check_first, int circ_shots, int number_of_combos) {
+
+    // Initialize the quantum table as a 2D vector
+    std::vector<std::vector<std::string>> quantum_table(number_of_combos, std::vector<std::string>(circ_shots));
+
+    // Set up random number generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    gen.seed(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
+
+    // Example of setting up the random number generator in a quantum computing library
+    // RandomDevices::get_instance().get_prng() = gen; // Ensure this is correctly integrated
+
+    int row = 0; // Row counter for the quantum table
+
+    for (int i = 0; i < Ns; ++i) { // Iterate through possible player 1 positions
+        for (int j = 0; j < Ns; ++j) { // Iterate through possible player 2 positions
+            if (i == j && check_first) { // Skip if players are on the same position and check_first is true
+                continue;
+            }
+            for (int k = 0; k < circ_shots; ++k) { // Iterate through circuit shots
+                quantum_table[row][k] = quantum_circuit_maker(graph, i, j); // Generate circuit result
+                //std::cout << quantum_table[row][k];
+            }
+            ++row; // Move to the next row
+        }
+    }
+
+    return quantum_table; // Return the populated quantum table
+}
+
+float run_game(){
+
+    float win_percent;//declare win percent variable
+    float number_wins;//declare number of wins variable
+    int number_of_combos;//declare number of combos
+    int Np =2;//Number of players variable
+    int Ns =3 ;//Number of sites in the game
+    int Nr = 1000000;//Number of runs of the game
+    int Nm = 1;//Number of moves players are allowed to make
+    int circ_shots =5;
+    bool check_first = true;//Check first or check later variant of the game
+    bool edge = false;//Are players allowed to meet one edges
+    const char graph[] = "cyclic";//What graph are we playing on
+    const char strategy[] = "quantum";//What Strategy are the players using
+
+    if(check_first == true){//If check first is true
+        number_of_combos = (Ns*Ns) - Ns;//calculate the number of combos, minus Ns combos for check first
+    }
+    else{//if check later is true
+        number_of_combos = (Ns*Ns);//calculate the number of combos, Ns^2
+    }
+
+
+    std::vector<std::vector<std::string>> quantum_table = quantum_table_generator(graph, Ns, Np, check_first,circ_shots, number_of_combos);
+
+
+    clock_t start = clock();//Start clock
+    number_wins = many_runs(graph,2,edge,quantum_table,true,Ns,Nr,Nm,strategy);//run many_runs function
+    clock_t end = clock();//finish clock
+    double total_time = (double)(end - start) / CLOCKS_PER_SEC;//calculate execution time
+    std::cout<< total_time ;//Print execution time
+
+
+
+    win_percent = number_wins/Nr;//calculate win percentage
+
+    return win_percent;
+}
+
+
 
 int main(){
-    //float win_percent;
+    float win_percent;
 
-    //win_percent = run_game();
+    win_percent = run_game();
     //std::cout << win_percent;
-    char graph[] = "cyclic";
 
-     quantum_table_generator(graph,3,2);
+
+
 
 
     return 0;
