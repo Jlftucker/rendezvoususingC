@@ -31,6 +31,10 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c17" />
+					<Add directory="../../../C++Libraries/eigen-3.4.0" />
+					<Add directory="../../../C++Libraries/qpp/include" />
+					<Add directory="../../../C++Libraries/qasmtools/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

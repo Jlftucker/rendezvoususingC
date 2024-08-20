@@ -1,6 +1,8 @@
+#define _USE_MATH_DEFINES
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 #include <cstring>
 #include <vector>
 #include <random>
@@ -200,16 +202,16 @@ int final_counter - what part of the sub array to look at
 
 */
 
-bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::vector<std::vector<std::string>> quantum_table,bool check_first, int Ns, int Nm, const char strategy[]){
+bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::vector<std::vector<float>> quantum_table,bool check_first, int Ns, int Nm, const char strategy[]){
     int new_pos[Np];//Declare an array with a position per player
     bool win = false;//Declare boolean winning variable
-    int i = 0;//Declare counter
-    int j =0;//Declare player counter
+    int i = 0;//Declare player counter
+    int j =0;//Declare number of moves counter
     int coin = 0;//Declare coin variable
     int table_index; //Declare table index
-    int row_number;//declare row number
-    std::string coins;//declare string array for coins
-    int player_coins;
+    std::vector<std::string> coins = {"00","01", "10", "00"};//declare string array for coins
+    std::vector<float> probability_distro;
+    std::string player_coins;
     char QuantumStrategy[] = "quantum";
     char Classical_golow[] = "classical_go_to_lowest";
 
@@ -222,7 +224,7 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
         // so that edges are not checked since this cannot occur right now
     }
 
-    while(win==false && j <Nm){
+    while(!win && j <Nm){
         int player1position = initial_pos[0];
         int player2position = initial_pos[1];
 
@@ -231,20 +233,30 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
             //std::cout << "ping you are classical";
         }
         else if (Quantum_strategycheck == 0){// if quantum coin we need to declare a placeholder variable as the coin is a string of each players coin now so we need to split them
-            //std::cout << "ping you are quantum";
-            table_index = random(quantum_table[0].size());//since the same number of shots per row we just take the length of one row and generate a number between 0 and that (0 inclusive)
-            //std::cout << "Table size" << quantum_table[0].size() << std::endl;
-            row_number =  quantum_table_index(Ns,player1position,player2position,graph,check_first);//Calculate what row we need to look at
-            coins = quantum_table[row_number][table_index];//create a new variable to hold the value of the coins
+            table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
+            probability_distro = quantum_table[table_index];
 
-            std::cout << coins[1] << std::endl ;//debug statement
+
+            //Create a random number generator and a discrete distribution
+            std::random_device rd; // Obtain a random number from hardware
+            std::mt19937 gen(rd()); // Seed the generator
+            std::discrete_distribution<> dist(probability_distro.begin(), probability_distro.end());
+
+            //Generate a random index
+            int coin_index = dist(gen);
+           // std::cout << "coin index" << "" << coin_index << std::endl; Debug statement
+            player_coins =coins[coin_index];
+            //std::cout << "Player 1 coin " << player_coins[0]; Debug statement
         }
 
         while(i <Np){//iterate through the number of players
-           // if(Quantum_strategycheck == 0){}
+            if (Quantum_strategycheck == 0){coin = player_coins[i] - '0';}
+            //std::cout << "The coin is now" << coin_used << std::endl;
+            //the coins are currently characters in a string array so held in ascII, by subtraction '0' we subtract that ascii code and get the number we want
             new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
             i++;
         }
+
         win = win_checker(new_pos,initial_pos,edge);
         initial_pos[0] = new_pos[0];//set positions for next move
         initial_pos[1] = new_pos[1];
@@ -252,7 +264,7 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
         j++;
     }
 
-    return win ;
+    return win;
 }
 
 
@@ -260,7 +272,7 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
 
 */
 
-float many_runs(const char graph[], int Np, bool edge, std::vector<std::vector<std::string>> quantum_table,bool check_first, int Ns, int Nr, int Nm, const char strategy[]){
+float many_runs(const char graph[], int Np, bool edge, std::vector<std::vector<float>> quantum_table,bool check_first, int Ns, int Nr, int Nm, const char strategy[]){
     int initial_pos[Np];//Initial position array
     bool win; //win variable
     float num_wins = 0;//number of wins counter
@@ -295,50 +307,87 @@ Function quantum_circuit_maker - Generates the quantum circuit result
 
 */
 
-std::string quantum_circuit_maker(const char graph[], int player1_position, int player2_position){
-    std::string both_results;
+
+std::vector<float> quantum_circuit_maker(const char graph[], int player1_position, int player2_position, int Ns, std::vector<float> probabilities){
     char cycle[] = "cyclic"; // String array for graph names
     int cyclegraph_check = std::strcmp(graph, cycle);
-
+    float thetas[] = {0,0,(2/3)*M_PI,M_PI/2, 0.4*M_PI,M_PI/3,0.5714*M_PI,M_PI/2}; // angles for cyclic graphs
+    float theta_i;//angle of rotation for player 1
+    float theta_j;//angle of rotation for player 2
+    float prob;
 
     if(cyclegraph_check ==  0){//If graph is cyclic
 
+        if(Ns ==3){
+            theta_i = player1_position*(M_PI/3);
+            theta_j = player2_position*(M_PI/3);
+        }
+
+
+        //First create a bell state
         QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
         qc.gate(gt.H,0);//apply a Hadamard gate to the first qubit
         qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
+
+        //Now apply rotations
+
+        qc.gate(gt.RY(theta_i), 0);
+        qc.gate(gt.RY(theta_j), 1);
+
+        // Now measure them
         qc.measure({0,1});//attach measurement to classical bits
+
         // initialize the quantum engine with a circuit
         QEngine engine{qc};
 
         // display the quantum circuit and its corresponding resources
         //  std::cout << qc << "\n\n" << qc.get_resources() << "\n\n";
         // execute the entire circuit
-        engine.execute();
+        engine.execute(20000);
         // Measure qubit 0
-        auto measurement_results = engine.get_dits();
-        // display the measurement statistics
-        both_results = std::to_string(measurement_results[0]) + std::to_string(measurement_results[1]);//convert to strings to store them
+        const auto& stats = engine.get_stats();
+        // Access raw data
+        const auto& raw_data = stats.data();
 
-        //std::cout << "Measurement result: " << both_results << std::endl;
+        // Print raw data
+        //std::cout << "Raw data:\n";
+        for (const auto& entry : raw_data) {
+           // const auto& outcome = entry.first;
+            float count = entry.second;
+            //Print the data
+            //std::cout << "Outcome: ";
+           // for (auto bit : outcome) {
+                //std::cout << bit << " ";
+           // }
+            //std::cout << " - Count: " << count << "\n";
+            prob = count/20000;
+            //std::cout << "Probability is" << prob << std::endl;
+            probabilities.insert(probabilities.end(),prob);//probabilities are in order of 00 01 10 11
+           // std::cout << probabilities[0]; Debug statement
     }
-    return(both_results);
-}
+    //Debug for checking probabilite tables
+    /*for (auto prob : probabilities) {
+            //std::cout << prob << " ";
+           // }
+    std::cout << "New line";
+    */
+    }
 
+    return(probabilities);
+}
 
 
 /*
 Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
-
-
-
 */
 
-std::vector<std::vector<std::string>> quantum_table_generator(
-    const char graph[], int Ns, int Np, bool check_first, int circ_shots, int number_of_combos) {
 
-    // Initialize the quantum table as a 2D vector
-    std::vector<std::vector<std::string>> quantum_table(number_of_combos, std::vector<std::string>(circ_shots));
 
+
+std::vector<std::vector<float>> quantum_table_generator(const char graph[], int Ns, int Np, bool check_first){
+
+    // Initialize the quantum table as a  vector
+    std::vector<std::vector<float>> quantum_table;
     // Set up random number generator
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -347,57 +396,60 @@ std::vector<std::vector<std::string>> quantum_table_generator(
     // Example of setting up the random number generator in a quantum computing library
     // RandomDevices::get_instance().get_prng() = gen; // Ensure this is correctly integrated
 
-    int row = 0; // Row counter for the quantum table
-
     for (int i = 0; i < Ns; ++i) { // Iterate through possible player 1 positions
         for (int j = 0; j < Ns; ++j) { // Iterate through possible player 2 positions
             if (i == j && check_first) { // Skip if players are on the same position and check_first is true
                 continue;
             }
-            for (int k = 0; k < circ_shots; ++k) { // Iterate through circuit shots
-                quantum_table[row][k] = quantum_circuit_maker(graph, i, j); // Generate circuit result
-                //std::cout << quantum_table[row][k];
+            else{
+             // Iterate through circuit shots
+                std::vector<float> probabilities;
+                probabilities = quantum_circuit_maker(graph, i, j, Ns, probabilities);
+                // Generate circuit result
+                quantum_table.push_back(probabilities);
             }
-            ++row; // Move to the next row
+
+             // Move to the next row
         }
     }
 
+
+
     return quantum_table; // Return the populated quantum table
 }
+
+
+
+
+
 
 float run_game(){
 
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
-    int number_of_combos;//declare number of combos
     int Np =2;//Number of players variable
     int Ns =3 ;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
-    int circ_shots =5;
     bool check_first = true;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
 
-    if(check_first == true){//If check first is true
-        number_of_combos = (Ns*Ns) - Ns;//calculate the number of combos, minus Ns combos for check first
-    }
-    else{//if check later is true
-        number_of_combos = (Ns*Ns);//calculate the number of combos, Ns^2
-    }
 
+    clock_t start1 = clock();//Start clock
+    std::vector<std::vector<float>> quantum_table = quantum_table_generator(graph, Ns, Np, check_first);
+    clock_t end1 = clock();//finish clock
+    double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
 
-    std::vector<std::vector<std::string>> quantum_table = quantum_table_generator(graph, Ns, Np, check_first,circ_shots, number_of_combos);
+    std::cout<< "Quantum Table generation time is "<< ""<< table_time << std::endl ;//Print execution time
 
-
-    clock_t start = clock();//Start clock
+    clock_t start2 = clock();//Start clo
     number_wins = many_runs(graph,2,edge,quantum_table,true,Ns,Nr,Nm,strategy);//run many_runs function
-    clock_t end = clock();//finish clock
-    double total_time = (double)(end - start) / CLOCKS_PER_SEC;//calculate execution time
-    std::cout<< total_time ;//Print execution time
+    clock_t end2 = clock();//finish clock
+    double run_time = (double)(end2 - start2) / CLOCKS_PER_SEC;//calculate execution time
 
-
+    std::cout<< "Time to play game is "<< ""<< run_time << std::endl ;//Print runtime
 
     win_percent = number_wins/Nr;//calculate win percentage
 
@@ -407,10 +459,10 @@ float run_game(){
 
 
 int main(){
-    float win_percent;
 
+    float win_percent;
     win_percent = run_game();
-    //std::cout << win_percent;
+    std::cout << "Win percentage is " << ""<< win_percent;
 
 
 
