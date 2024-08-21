@@ -441,6 +441,40 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
 
 
 /*
+Function gene_quantum_circuit - A function that takes in a gene vector and builds a circuit which then makes our probability table
+
+
+*/
+
+std::vector gene_quantum_circuit(std::vector gene, int Ns, int Np, bool symmetric){
+//Each input vector will either be Ns (symmetric games) in length or 2Ns(asymmetric games) in length with each 3 numbers representing the three angles the player will rotate around the x y and z axis
+
+
+    std::vector site_angles;//Declare site angle array using vector - dynamic memory allocation so no need to declare a size at this time
+
+    if(symmetric==true){//if we are playing a symmetric game
+        while(int i = 0; i<(gene.size-1), i= i+3{
+            float theta_x = gene[i]*2*M_PI;
+            float theta_y = gene[i+1]*2*M_PI;
+            float theta_z = gene[i+2]*2*M_PI;
+
+            site_angles.push_back(theta_x);
+            site_angles.push_back(theta_y);
+            site_angles.push_back(theta_z);
+
+        }
+
+    }
+
+    //First create a bell state |00>+|11>
+    QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
+    qc.gate(gt.H,0);//apply a  Hadamard gate to the first qubit
+    qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
+
+
+
+}
+/*
 Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
 
 INPUT
@@ -496,6 +530,9 @@ std::vector<std::vector<float>> quantum_table_generator(const char graph[], int 
 
 /*
 Function quantum_table_generator - Runs game and sets input variables(separate to main as a main function has to return a int and want a float for the win percent)
+INPUT
+
+NS - INT - Number of sites on the graph
 
 OUTPUT
 
@@ -506,12 +543,12 @@ win_percent - float - The win percentage of the game
 
 
 
-float run_game(){
+float run_game(int Ns){
 
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
-    int Ns =4;//Number of sites in the game
+    //int Ns =4;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
@@ -525,14 +562,14 @@ float run_game(){
     clock_t end1 = clock();//finish clock
     double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
 
-    std::cout<< "Quantum Table generation time is "<< ""<< table_time << std::endl ;//Print execution time
+    std::cout<< "Quantum Table generation time is "<< ""<< table_time << "\n" ;//Print execution time
 
     clock_t start2 = clock();//Start clo
-    number_wins = many_runs(graph,2,edge,quantum_table,true,Ns,Nr,Nm,strategy);//run many_runs function
+    number_wins = many_runs(graph,Np,edge,quantum_table,true,Ns,Nr,Nm,strategy);//run many_runs function
     clock_t end2 = clock();//finish clock
     double run_time = (double)(end2 - start2) / CLOCKS_PER_SEC;//calculate execution time
 
-    std::cout<< "Time to play game is "<< ""<< run_time << std::endl ;//Print runtime
+    std::cout<< "Time to play game is "<< ""<< run_time << "\n" ;//Print runtime
 
     win_percent = number_wins/Nr;//calculate win percentage
 
@@ -541,14 +578,16 @@ float run_game(){
 
 
 
+
+}
+
+
+
 int main(){
-
+    int Ns = 8;
     float win_percent;
-    win_percent = run_game();
-    std::cout << "Win percentage is " << ""<< win_percent;
-
-
-
+    win_percent = run_game(Ns);
+    std::cout << "Win percentage is for" <<Ns << ""<<"sites is "<< "" << win_percent << "\n";
 
 
     return 0;
