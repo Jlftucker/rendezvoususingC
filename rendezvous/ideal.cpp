@@ -13,6 +13,10 @@
 #include <boost/version.hpp>
 #include <typeinfo>
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 using namespace qpp;
 /*
 A function that takes both the players old positions and new positions and then checks to see if they have won
@@ -269,6 +273,24 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
 
 
 /*
+FUNCTION - many_runs - A function that runs the game multiple times with the total number of times decided by an input variable
+
+INPUT
+
+graph - Character Array - Name of the graph the game is being played on
+Np - INT - The number of players in a game
+edge - bool - decides whether or not players can meet on the edge
+quantum_table - vector<vector<float>> - a two dimensional vector that holds the probabilities of every scenario
+check_first - bool - decides whether players check before moving or check after moving
+Ns - INT - Number of sites on the graph the game is being played on
+Nr - INT - Number of runs the simulation will do
+Nm - INT - Number of moves the players are allowed to make
+strategy - character array - Name of the strategy the players are using
+
+OUTPUT
+
+num_wins - float - Number of wins out of the runs
+
 
 */
 
@@ -300,11 +322,39 @@ float many_runs(const char graph[], int Np, bool edge, std::vector<std::vector<f
     return(num_wins);
 }
 
+// Function to generate all possible outcomes for n qubits
+
+std::vector<std::string> generatePossibleOutcomes(int numQubits) {
+    std::vector<std::string> outcomes;
+    int totalOutcomes = 1 << numQubits; // 2^numQubits
+
+    for (int i = 0; i < totalOutcomes; ++i) {
+        std::string outcome;
+        for (int j = numQubits - 1; j >= 0; --j) {
+            outcome += (i & (1 << j)) ? '1' : '0';
+        }
+        outcomes.push_back(outcome);
+    }
+
+    return outcomes;
+}
+
+
 
 /*
+Function quantum_circuit_maker - Generates the quantum circuit and runs it 20000 times. Then stores in a vector array and returns it
 
-Function quantum_circuit_maker - Generates the quantum circuit result
+INPUT
 
+graph - Character Array - Name of the graph the game is being played on
+player1_position - INT - position of player one
+player2_position - INT - position of player two
+Ns - INT - Number of sites on the graph the game is being played
+probabiltiies - Vector<float> - An empty vector that will hold the probability results calculated from the circuit
+
+OUTPUT
+
+probabiltiies - Vector<float> - The now full vector that holds the probability results calculated from the circuit
 */
 
 
@@ -314,71 +364,96 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
     float thetas[] = {0,0,(2/3)*M_PI,M_PI/2, 0.4*M_PI,M_PI/3,0.5714*M_PI,M_PI/2}; // angles for cyclic graphs
     float theta_i;//angle of rotation for player 1
     float theta_j;//angle of rotation for player 2
-    float prob;
 
     if(cyclegraph_check ==  0){//If graph is cyclic
 
-        if(Ns ==3){
+
+        if(Ns ==3){//If  N=3 cycle graph
             theta_i = player1_position*(M_PI/3);
             theta_j = player2_position*(M_PI/3);
         }
-
-
-        //First create a bell state
+        else{// Anything above 3 sites follows this pattern
+            theta_i =  player1_position*thetas[Ns-1];
+            theta_j =  player2_position*thetas[Ns-1];
+            if(player1_position == Ns-1 || player1_position == 0){theta_i = theta_i +M_PI;}
+            if(player2_position == Ns-1 || player2_position == 0){theta_j = theta_j +M_PI;}
+        }
+        //First create a bell state |00>+|11>
         QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
         qc.gate(gt.H,0);//apply a Hadamard gate to the first qubit
         qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
 
         //Now apply rotations
-
         qc.gate(gt.RY(theta_i), 0);
         qc.gate(gt.RY(theta_j), 1);
-
         // Now measure them
         qc.measure({0,1});//attach measurement to classical bits
-
         // initialize the quantum engine with a circuit
         QEngine engine{qc};
-
         // display the quantum circuit and its corresponding resources
         //  std::cout << qc << "\n\n" << qc.get_resources() << "\n\n";
         // execute the entire circuit
         engine.execute(20000);
         // Measure qubit 0
+
+        //Get statistics from the quantum engine
         const auto& stats = engine.get_stats();
         // Access raw data
         const auto& raw_data = stats.data();
 
-        // Print raw data
-        //std::cout << "Raw data:\n";
-        for (const auto& entry : raw_data) {
-           // const auto& outcome = entry.first;
-            float count = entry.second;
-            //Print the data
-            //std::cout << "Outcome: ";
-           // for (auto bit : outcome) {
-                //std::cout << bit << " ";
-           // }
-            //std::cout << " - Count: " << count << "\n";
-            prob = count/20000;
-            //std::cout << "Probability is" << prob << std::endl;
-            probabilities.insert(probabilities.end(),prob);//probabilities are in order of 00 01 10 11
-           // std::cout << probabilities[0]; Debug statement
-    }
-    //Debug for checking probabilite tables
-    /*for (auto prob : probabilities) {
-            //std::cout << prob << " ";
-           // }
-    std::cout << "New line";
-    */
+        //vector of possible outcomes
+        std::vector<std::string> possibleOutcomes = {"00", "01", "10", "11"};
+
+        // Initialize the outcomeCounts map with all possible outcomes
+       std::unordered_map<std::string, float> outcomeCounts;
+    for (const auto& outcome : possibleOutcomes) {
+        outcomeCounts[outcome] = 0.0f; // Initialize with 0.0f
+
     }
 
+    // Update the map with counts from raw_data
+    for (const auto& entry : raw_data) {
+        auto outcomes = entry.first;
+        std::string outcome = std::to_string(outcomes[0])+std::to_string(outcomes[1]); // Extract the outcome name
+        float count = entry.second;               // Extract the count
+        outcomeCounts[outcome] = count;           // Update the map
+    }
+
+    // Compute probabilities and store in a vector
+    const float totalRuns = 20000.0f; // Total number of runs
+
+    for (const auto& outcome : possibleOutcomes) {
+        float count = outcomeCounts[outcome];
+        float prob = count / totalRuns; // Calculate probability
+        probabilities.push_back(prob);  // Store probability
+        }
+
+
+    }
     return(probabilities);
 }
+
+//Debug for checking probability tables
+    //for (auto prob : probabilities) {
+          //  std::cout << prob << " ";
+          // }
+   // std::cout << "New line";
 
 
 /*
 Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
+
+INPUT
+
+graph - Character Array - Name of the graph the game is being played on
+Ns - INT - Number of sites on the graph the game is being played
+Np - INT - The number of players in a game
+check_first - bool - decides whether players check before moving or check after moving
+
+OUTPUT
+
+quantum_table - vector<vector<float>> - quantum table that stores the probabilities of each different scenario of the game
+
 */
 
 
@@ -402,8 +477,8 @@ std::vector<std::vector<float>> quantum_table_generator(const char graph[], int 
                 continue;
             }
             else{
-             // Iterate through circuit shots
                 std::vector<float> probabilities;
+               // probabilities.reserve(4);
                 probabilities = quantum_circuit_maker(graph, i, j, Ns, probabilities);
                 // Generate circuit result
                 quantum_table.push_back(probabilities);
@@ -419,6 +494,14 @@ std::vector<std::vector<float>> quantum_table_generator(const char graph[], int 
 }
 
 
+/*
+Function quantum_table_generator - Runs game and sets input variables(separate to main as a main function has to return a int and want a float for the win percent)
+
+OUTPUT
+
+win_percent - float - The win percentage of the game
+
+*/
 
 
 
@@ -428,7 +511,7 @@ float run_game(){
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
-    int Ns =3 ;//Number of sites in the game
+    int Ns =4;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
