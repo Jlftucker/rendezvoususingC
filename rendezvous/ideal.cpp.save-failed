@@ -12,7 +12,7 @@
 #include "qpp/qpp.h"
 #include <boost/version.hpp>
 #include <typeinfo>
-
+#include "OpenGA.hpp"
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
 #endif
@@ -200,7 +200,6 @@ bool check_first - A boolean variable that decides whether the game is check fir
 Output
 
 int final_counter - what part of the sub array to look at
-
 
 
 
@@ -439,6 +438,187 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
           // }
    // std::cout << "New line";
 
+/*
+Function - Genetic Quantum circuit
+*/
+
+std::vector<float> genetic_quantum_circuit(int player1_position, int player2_position, int Ns, std::vector<float> probabilities, std::vector<std::vector<float>> angle_vector, bool symmetric){
+    float theta_ix;//player 1 x rotation
+    float theta_iy;//player 1 y rotation
+    float theta_iz;//player 1 z rotation
+    float theta_jx;//player 2 x rotation
+    float theta_jy;//player 2 y rotation
+    float theta_jz;//player 2 z rotation
+
+    //For the moment this will just be for 2 qubits for a one step game but in the future it will be more
+
+    //First create a bell state |00>+|11> - we can make this part of the genome actually (do later)
+    QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
+    qc.gate(gt.H,0);//apply a Hadamard gate to the first qubit
+    qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
+
+    if(symmetric==true){
+        //player 1` angles of rotation
+        theta_ix = angle_vector[player1_position][0];
+        theta_iy = angle_vector[player1_position][1];
+        theta_iz = angle_vector[player1_position][2];
+        //player 2 angles of rotation
+        theta_jx = angle_vector[player2_position][0];
+        theta_jy = angle_vector[player2_position][1];
+        theta_jz = angle_vector[player2_position][2];
+    }
+    else if(symmetric==false){// if in an asymmetric game
+        //player 1` angle of rotation
+        theta_ix = angle_vector[player1_position][0];
+        theta_iy = angle_vector[player1_position][1];
+        theta_iz = angle_vector[player1_position][2];
+
+        //player 2 angle of rotation
+        theta_jx = angle_vector[player2_position][3];
+        theta_jy = angle_vector[player2_position][4];
+        theta_jz = angle_vector[player2_position][5];
+    }
+
+    // Now apply rotations to the circuit
+    //Player 1 rotations
+    qc.gate(gt.RX(theta_ix), 0);
+    qc.gate(gt.RY(theta_iy), 0);
+    qc.gate(gt.RX(theta_iz), 0);
+
+    //player 2 rotations
+
+    qc.gate(gt.RX(theta_jx), 1);
+    qc.gate(gt.RY(theta_jy), 1);
+    qc.gate(gt.RX(theta_jz), 1);
+
+    qc.measure({0,1});//attach measurement to classical bits
+    // initialize the quantum engine with a circuit
+    QEngine engine{qc};
+    // display the quantum circuit and its corresponding resources
+    //  std::cout << qc << "\n\n" << qc.get_resources() << "\n\n";
+    // execute the entire circuit
+    engine.execute(20000);
+    //Get statistics from the quantum engine
+    const auto& stats = engine.get_stats();
+    // Access raw data
+    const auto& raw_data = stats.data();
+
+    //vector of possible outcomes
+    std::vector<std::string> possibleOutcomes = {"00", "01", "10", "11"};
+
+    // Initialize the outcomeCounts map with all possible outcomes
+    std::unordered_map<std::string, float> outcomeCounts;
+    for (const auto& outcome : possibleOutcomes) {
+        outcomeCounts[outcome] = 0.0f; // Initialize with 0.0f
+    }
+
+    // Update the map with counts from raw_data
+    for (const auto& entry : raw_data) {
+        auto outcomes = entry.first;
+        std::string outcome = std::to_string(outcomes[0])+std::to_string(outcomes[1]); // Extract the outcome name
+        float count = entry.second;               // Extract the count
+        outcomeCounts[outcome] = count;           // Update the map
+    }
+
+    // Compute probabilities and store in a vector
+    const float totalRuns = 20000.0f; // Total number of runs
+
+    for (const auto& outcome : possibleOutcomes) {
+        float count = outcomeCounts[outcome];
+        float prob = count / totalRuns; // Calculate probability
+        probabilities.push_back(prob);  // Store probability
+        }
+
+
+
+    return(probabilities);
+
+}
+
+
+
+/*
+Function gene_quantum_circuit - A function that takes in a gene vector and builds a quantum table with it
+
+
+*/
+
+std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, int Ns, int Np, bool symmetric,bool check_first){
+//Each input vector will either be Ns (symmetric games) in length or 2Ns(asymmetric games) in length with each 3 numbers representing the three angles the player will rotate around the x y and z axis
+    int a = 0; //counter for angle list
+    std::vector<std::vector<float>> angle_vector;//2d vector that will hold arrays of angles -makes the positioning of the players much easier
+
+    if(symmetric==true){//if we are playing a symmetric game
+        while(a<(gene.size() - 1), a= a+3){
+            std::vector<float> site_angles;//Declare site angle array using vector - Declare inside loop to reinitialize it
+            float theta_x = gene[a]*2*M_PI;
+            float theta_y = gene[a+1]*2*M_PI;
+            float theta_z = gene[a+2]*2*M_PI;
+            //Push the angles
+            site_angles.push_back(theta_x);
+            site_angles.push_back(theta_y);
+            site_angles.push_back(theta_z);
+
+            angle_vector.push_back(site_angles);
+        }
+    }
+    else{//if we are playing an asymmetric game
+        while(a<(gene.size() - 1), a= a+6){//player 1 angles - increase by 6 each time
+            std::vector<float> site_angles;//Declare site angle array using vector - Declare inside loop to reinitialize it
+             //Player 1 angles
+            float theta_x1 = gene[a]*2*M_PI;
+            float theta_y1 = gene[a+1]*2*M_PI;
+            float theta_z1 = gene[a+2]*2*M_PI;
+            //Player 2 angles
+            float theta_x2 = gene[a+3]*2*M_PI;
+            float theta_y2 = gene[a+4]*2*M_PI;
+            float theta_z2 = gene[a+5]*2*M_PI;
+            //add the angles to the angle array now
+            site_angles.push_back(theta_x1);
+            site_angles.push_back(theta_y1);
+            site_angles.push_back(theta_z1);
+            site_angles.push_back(theta_x2);
+            site_angles.push_back(theta_y2);
+            site_angles.push_back(theta_z2);
+
+            angle_vector.push_back(site_angles);
+        }
+
+    }
+    //Now we need build our quantum table - luckily we can just copy this
+
+    std::vector<std::vector<float>> quantum_table;
+    // Set up random number generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    gen.seed(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
+
+    // Example of setting up the random number generator in a quantum computing library
+    // RandomDevices::get_instance().get_prng() = gen; // Ensure this is correctly integrated
+
+    for (int i = 0; i < Ns; ++i) { // Iterate through possible player 1 positions
+        for (int j = 0; j < Ns; ++j) { // Iterate through possible player 2 positions
+            if (i == j && check_first) { // Skip if players are on the same position and check_first is true
+                continue;
+            }
+            else{
+                std::vector<float> probabilities;
+                probabilities = genetic_quantum_circuit(i,j,Ns,probabilities,angle_vector,symmetric);
+                // Generate circuit result
+                quantum_table.push_back(probabilities);
+            }
+
+             // Move to the next row
+        }
+    }
+
+
+
+    return quantum_table;
+}
+
+
+
 
 /*
 Function quantum_table_generator - generates the quantum table for us to use based off of the game we are playing
@@ -496,6 +676,9 @@ std::vector<std::vector<float>> quantum_table_generator(const char graph[], int 
 
 /*
 Function quantum_table_generator - Runs game and sets input variables(separate to main as a main function has to return a int and want a float for the win percent)
+INPUT
+
+NS - INT - Number of sites on the graph
 
 OUTPUT
 
@@ -506,34 +689,70 @@ win_percent - float - The win percentage of the game
 
 
 
-float run_game(int Ns){
+float run_game(){
 
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
-    //int Ns =4;//Number of sites in the game
+    int Ns =4;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
+    bool symmetric = true;
+
+
+    // if we know the strategy then use the one programmed in
+        clock_t start1 = clock();//Start clock
+        std::vector<std::vector<float>> quantum_table = quantum_table_generator(graph, Ns, Np, check_first);
+        clock_t end1 = clock();//finish clock
+        double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
+
+        std::cout<< "Quantum Table generation time is "<< ""<< table_time << "\n" ;//Print execution time
+
+        clock_t start2 = clock();//Start clo
+        number_wins = many_runs(graph,Np,edge,quantum_table,check_first,Ns,Nr,Nm,strategy);//run many_runs function
+        clock_t end2 = clock();//finish clock
+        double run_time = (double)(end2 - start2) / CLOCKS_PER_SEC;//calculate execution time
+
+        std::cout<< "Time to play game is "<< ""<< run_time << "\n" ;//Print runtime
+
+        win_percent = number_wins/Nr;//calculate win percentage
+
+        return win_percent;
+
+
+    return 0;
+}
+
+
+float genetic_fitness(std:vector<float> gene){
+    float win_percent;//declare win percent variable
+    float number_wins;//declare number of wins variable
+    int Np =2;//Number of players variable
+    int Ns =3;//Number of sites in the game
+    int Nr = 1000000;//Number of runs of the game
+    int Nm = 1;//Number of moves players are allowed to make
+    bool check_first = true;//Check first or check later variant of the game
+    bool edge = false;//Are players allowed to meet one edges
+    const char graph[] = "cyclic";//What graph are we playing on
+    const char strategy[] = "quantum";//What Strategy are the players using
+    bool symmetric = true;
+
 
 
     clock_t start1 = clock();//Start clock
-    std::vector<std::vector<float>> quantum_table = quantum_table_generator(graph, Ns, Np, check_first);
+    std::vector<std::vector<float>> quantum_table = genetic_quantum_table(gene,Ns,Np,symmetric,check_first);
     clock_t end1 = clock();//finish clock
     double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
 
-    std::cout<< "Quantum Table generation time is "<< ""<< table_time << "\n" ;//Print execution time
-
-    clock_t start2 = clock();//Start clo
-    number_wins = many_runs(graph,Np,edge,quantum_table,true,Ns,Nr,Nm,strategy);//run many_runs function
+    clock_t start2 = clock();//Start clock
+    number_wins = many_runs(graph,Np,edge,quantum_table,check_first,Ns,Nr,Nm,strategy);//run many_runs function - this is our fitness function
     clock_t end2 = clock();//finish clock
     double run_time = (double)(end2 - start2) / CLOCKS_PER_SEC;//calculate execution time
-
     std::cout<< "Time to play game is "<< ""<< run_time << "\n" ;//Print runtime
-
     win_percent = number_wins/Nr;//calculate win percentage
 
     return win_percent;
@@ -541,11 +760,20 @@ float run_game(int Ns){
 
 
 
+
+
 int main(){
-    int Ns = 5;
     float win_percent;
-    win_percent = run_game(Ns);
-    std::cout << "Win percentage is for" <<Ns << ""<<"sites is "<< "" << win_percent << "\n";
+
+
+
+    std::cout << "Win percentage is " << win_percent << "\n";
+
+    std::vector<float> test_gene = {0.0,0.0,0.0,0.0,M_PI/3,0.0,0.0,2*M_PI/3,0.0};
+
+    win_percent = genetic_fitness(test_gene);
+    std::cout << "Win percentage is " << win_percent << "\n";
+
 
 
     return 0;
