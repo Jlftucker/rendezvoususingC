@@ -12,7 +12,8 @@
 #include "qpp/qpp.h"
 #include <boost/version.hpp>
 #include <typeinfo>
-#include "OpenGA.hpp"
+
+
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
 #endif
@@ -427,11 +428,13 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
         probabilities.push_back(prob);  // Store probability
         }
     }
+
+     /*Debug statement to check the probability table
      for(auto p:probabilities){
         std::cout << p;
     }
     std::cout<< "new line" << "\n";
-
+    */
 
     return(probabilities);
 }
@@ -534,10 +537,10 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
         probabilities.push_back(prob);  // Store probability
         }
 
-    for(auto p:probabilities){
-        std::cout << p;
-    }
-    std::cout<< "new line" << "\n";
+    //for(auto p:probabilities){Debug statement to check prob table
+      //  std::cout << p;
+   // }
+   // std::cout<< "new line" << "\n";
 
     return(probabilities);
 
@@ -777,16 +780,29 @@ float genetic_fitness(std::vector<float> gene){
 
 int main(){
     float win_percent;
+    int Ns = 3;
+    bool symmetric = true;
+    int gene_length;
+
+    if(symmetric){
+        gene_length = Ns*Ns;
+    }
+    else{
+        gene_length = (Ns+Ns)*Ns;
+    }
+    // std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0}; Test vector that represents the optimal three site strategy on check later
+     // Initialize the GA with a population of chromosomes containing 10 floats
 
 
-    std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0};
 
-    win_percent = genetic_fitness(test_gene);
-    std::cout << "Win percentage is " << win_percent << "\n";
+    std::cout << std::endl;
+    //Testing of the gene vector
+   // win_percent = genetic_fitness(test_gene);
+    //std::cout << "Win percentage is " << win_percent << "\n";
 
-
-    win_percent = run_game();
-    std::cout << "Win percentage is " << win_percent << "\n";
+   // Below is a game where we know the strategy
+   // win_percent = run_game();
+   // std::cout << "Win percentage is " << win_percent << "\n";
 
 
     return 0;
