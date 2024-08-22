@@ -426,9 +426,13 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
         float prob = count / totalRuns; // Calculate probability
         probabilities.push_back(prob);  // Store probability
         }
-
-
     }
+     for(auto p:probabilities){
+        std::cout << p;
+    }
+    std::cout<< "new line" << "\n";
+
+
     return(probabilities);
 }
 
@@ -482,14 +486,15 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
     // Now apply rotations to the circuit
     //Player 1 rotations
     qc.gate(gt.RX(theta_ix), 0);
+    qc.gate(gt.RX(theta_jx), 1);
+
     qc.gate(gt.RY(theta_iy), 0);
-    qc.gate(gt.RX(theta_iz), 0);
+    qc.gate(gt.RY(theta_jy), 1);
 
     //player 2 rotations
 
-    qc.gate(gt.RX(theta_jx), 1);
-    qc.gate(gt.RY(theta_jy), 1);
-    qc.gate(gt.RX(theta_jz), 1);
+    qc.gate(gt.RZ(theta_iz), 0);
+    qc.gate(gt.RZ(theta_jz), 1);
 
     qc.measure({0,1});//attach measurement to classical bits
     // initialize the quantum engine with a circuit
@@ -529,7 +534,10 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
         probabilities.push_back(prob);  // Store probability
         }
 
-
+    for(auto p:probabilities){
+        std::cout << p;
+    }
+    std::cout<< "new line" << "\n";
 
     return(probabilities);
 
@@ -617,9 +625,6 @@ std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, i
     }
 
 
-    for(auto bit: quantum_table){
-        std::cout << bit[0];
-    }
 
     return quantum_table;
 }
@@ -701,7 +706,7 @@ float run_game(){
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
-    int Ns =4;//Number of sites in the game
+    int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
@@ -728,10 +733,9 @@ float run_game(){
 
         win_percent = number_wins/Nr;//calculate win percentage
 
-        return win_percent;
 
 
-    return 0;
+    return win_percent;
 }
 
 
@@ -775,11 +779,14 @@ int main(){
     float win_percent;
 
 
-    std::vector<float> test_gene = {0.0,0.0,0.0,0.0,M_PI/3,0.0,0.0,2*M_PI/3,0.0};
+    std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0};
 
     win_percent = genetic_fitness(test_gene);
     std::cout << "Win percentage is " << win_percent << "\n";
 
+
+    win_percent = run_game();
+    std::cout << "Win percentage is " << win_percent << "\n";
 
 
     return 0;
