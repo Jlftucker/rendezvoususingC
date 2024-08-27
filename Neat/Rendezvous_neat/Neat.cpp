@@ -211,7 +211,7 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
     bool win = false;//Declare boolean winning variable
     int i = 0;//Declare player counter
     int j =0;//Declare number of moves counter
-    int coin = 0;//Declare coin variable
+    int coin;//Declare coin variable
     int table_index; //Declare table index
     std::vector<std::string> coins = {"00","01", "10", "00"};//declare string array for coins
     std::vector<float> probability_distro;
@@ -232,12 +232,18 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
         int player1position = initial_pos[0];
         int player2position = initial_pos[1];
 
+
+        //std::cout << "player 1 initial postion is " << "" << player1position << "\n";
+        //std::cout << "player 2 initial postion is " << "" << player2position << "\n";
+
         if(Classical_strategycheck ==0){//if classical coin then each player uses the same go to lowest coin and we declare outside the loop
+            //std::cout << "ping";
             coin =0;
             //std::cout << "ping you are classical";
         }
         else if (Quantum_strategycheck == 0){// if quantum coin we need to declare a placeholder variable as the coin is a string of each players coin now so we need to split them
             table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
+            //std::cout << "table index is" << table_index << "\n";
             probability_distro = quantum_table[table_index];
 
 
@@ -248,13 +254,14 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
 
             //Generate a random index
             int coin_index = dist(gen);
-           // std::cout << "coin index" << "" << coin_index << std::endl; Debug statement
+            //std::cout << "coin index" << "" << coin_index << std::endl; //Debug statement
             player_coins =coins[coin_index];
             //std::cout << "Player 1 coin " << player_coins[0]; Debug statement
         }
 
         while(i <Np){//iterate through the number of players
             if (Quantum_strategycheck == 0){coin = player_coins[i] - '0';}
+            //std::cout << coin;}
             //std::cout << "The coin is now" << coin_used << std::endl;
             //the coins are currently characters in a string array so held in ascII, by subtraction '0' we subtract that ascii code and get the number we want
             new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
@@ -710,7 +717,7 @@ float run_game(){
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
     int Ns =3;//Number of sites in the game
-    int Nr = 1000000;//Number of runs of the game
+    int Nr = 10000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
@@ -790,20 +797,23 @@ int main(){
     else{
         gene_length = (Ns+Ns)*Ns;
     }
-    // std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0}; Test vector that represents the optimal three site strategy on check later
+     std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0};//Test vector that represents the optimal three site strategy on check later
      // Initialize the GA with a population of chromosomes containing 10 floats
 
 
 
     //std::cout << std::endl;
     //Testing of the gene vector
-   // win_percent = genetic_fitness(test_gene);
-    //std::cout << "Win percentage is " << win_percent << "\n";
-
-   // Below is a game where we know the strategy
-   win_percent = run_game();
+    win_percent = genetic_fitness(test_gene);
     std::cout << "Win percentage is " << win_percent << "\n";
 
+   // Below is a game where we know the strategy
+   //win_percent = run_game();
+   //std::cout << "Win percentage is " << win_percent << "\n";
+
+    //const char graph[] = "cyclic";//What graph are we playing on
+    //int counter = quantum_table_index(3,2,0,graph,true);
+   // std::cout << "counter" << counter;
 
     return 0;
 }

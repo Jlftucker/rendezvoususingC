@@ -777,7 +777,6 @@ float genetic_fitness(std::vector<float> gene){
 
 
 
-
 int main(){
     float win_percent;
     int Ns = 3;
