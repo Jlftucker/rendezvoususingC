@@ -12,7 +12,11 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-g" />
+					<Add option="-std=c17" />
+					<Add directory="../../../../C++Libraries/eigen-3.4.0" />
+					<Add directory="../../../../C++Libraries/gapp" />
+					<Add directory="../../../../C++Libraries/qasmtools/include" />
+					<Add directory="../../../../C++Libraries/qpp/include" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -25,14 +29,15 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lc" />
+					<Add option="-lcygwin" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Extensions>
-			<lib_finder disable_auto="1" />
-		</Extensions>
+		<Unit filename="Neat.cpp" />
+		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

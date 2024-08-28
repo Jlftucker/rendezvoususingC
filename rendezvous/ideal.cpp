@@ -763,6 +763,8 @@ float genetic_fitness(std::vector<float> gene){
     //  std::cout << "Ping2"; Debug statement
     clock_t end1 = clock();//finish clock
     double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
+    std::cout << "Time to generate table is " << "" << table_time << "\n";
+
 
     clock_t start2 = clock();//Start clock
     number_wins = many_runs(graph,Np,edge,quantum_table,check_first,Ns,Nr,Nm,strategy);//run many_runs function - this is our fitness function
@@ -789,19 +791,19 @@ int main(){
     else{
         gene_length = (Ns+Ns)*Ns;
     }
-    // std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0}; Test vector that represents the optimal three site strategy on check later
+     std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0}; //Test vector that represents the optimal three site strategy on check later
      // Initialize the GA with a population of chromosomes containing 10 floats
 
 
 
-    std::cout << std::endl;
+     std::cout << std::endl;
     //Testing of the gene vector
-   // win_percent = genetic_fitness(test_gene);
-    //std::cout << "Win percentage is " << win_percent << "\n";
+   win_percent = genetic_fitness(test_gene);
+    std::cout << "Win percentage is " << win_percent << "\n";
 
    // Below is a game where we know the strategy
    // win_percent = run_game();
-   // std::cout << "Win percentage is " << win_percent << "\n";
+    //std::cout << "Win percentage is " << win_percent << "\n";
 
 
     return 0;

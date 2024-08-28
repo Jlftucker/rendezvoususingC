@@ -12,7 +12,11 @@
 #include "qpp/qpp.h"
 #include <boost/version.hpp>
 #include <typeinfo>
+#include <numeric>
+#include <fstream>
 
+// Define the type for our genetic algorithm's vectors
+using Chromosome = std::vector<float>;
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -38,6 +42,7 @@ bool win - boolean variable that declares whether players have won or not
 
 bool win_checker(int new_player_positions[], int old_player_positions[], bool edges){
     bool win;//Declare win variable
+
 
     if (edges == false){//if edges is false check they are on the same node
         if (new_player_positions[0]== new_player_positions[1]){
@@ -211,7 +216,7 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
     bool win = false;//Declare boolean winning variable
     int i = 0;//Declare player counter
     int j =0;//Declare number of moves counter
-    int coin;//Declare coin variable
+    int coin = 0;//Declare coin variable
     int table_index; //Declare table index
     std::vector<std::string> coins = {"00","01", "10", "00"};//declare string array for coins
     std::vector<float> probability_distro;
@@ -232,18 +237,12 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
         int player1position = initial_pos[0];
         int player2position = initial_pos[1];
 
-
-        //std::cout << "player 1 initial postion is " << "" << player1position << "\n";
-        //std::cout << "player 2 initial postion is " << "" << player2position << "\n";
-
         if(Classical_strategycheck ==0){//if classical coin then each player uses the same go to lowest coin and we declare outside the loop
-            //std::cout << "ping";
             coin =0;
             //std::cout << "ping you are classical";
         }
         else if (Quantum_strategycheck == 0){// if quantum coin we need to declare a placeholder variable as the coin is a string of each players coin now so we need to split them
             table_index = quantum_table_index(Ns,player1position,player2position,graph,check_first);
-            //std::cout << "table index is" << table_index << "\n";
             probability_distro = quantum_table[table_index];
 
 
@@ -254,14 +253,13 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
 
             //Generate a random index
             int coin_index = dist(gen);
-            //std::cout << "coin index" << "" << coin_index << std::endl; //Debug statement
+           // std::cout << "coin index" << "" << coin_index << std::endl; Debug statement
             player_coins =coins[coin_index];
             //std::cout << "Player 1 coin " << player_coins[0]; Debug statement
         }
 
         while(i <Np){//iterate through the number of players
             if (Quantum_strategycheck == 0){coin = player_coins[i] - '0';}
-            //std::cout << coin;}
             //std::cout << "The coin is now" << coin_used << std::endl;
             //the coins are currently characters in a string array so held in ascII, by subtraction '0' we subtract that ascii code and get the number we want
             new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
@@ -717,7 +715,7 @@ float run_game(){
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
     int Ns =3;//Number of sites in the game
-    int Nr = 10000;//Number of runs of the game
+    int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
@@ -756,7 +754,7 @@ float genetic_fitness(std::vector<float> gene){
     int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
-    bool check_first = true;//Check first or check later variant of the game
+    bool check_first = false;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
@@ -764,19 +762,20 @@ float genetic_fitness(std::vector<float> gene){
 
 
 
-    clock_t start1 = clock();//Start clock
+    //clock_t start1 = clock();//Start clock
     //std::cout << "Ping1"; Debug statement
     std::vector<std::vector<float>> quantum_table = genetic_quantum_table(gene,Ns,Np,symmetric,check_first);
     //  std::cout << "Ping2"; Debug statement
-    clock_t end1 = clock();//finish clock
-    double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
+    //clock_t end1 = clock();//finish clock
+    //double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
 
-    clock_t start2 = clock();//Start clock
+    //clock_t start2 = clock();//Start clock
     number_wins = many_runs(graph,Np,edge,quantum_table,check_first,Ns,Nr,Nm,strategy);//run many_runs function - this is our fitness function
-    clock_t end2 = clock();//finish clock
-    double run_time = (double)(end2 - start2) / CLOCKS_PER_SEC;//calculate execution time
-    std::cout<< "Time to play game is "<< ""<< run_time << "\n" ;//Print runtime
+    //clock_t end2 = clock();//finish clock
+   // double run_time = (double)(end2 - start2) / CLOCKS_PER_SEC;//calculate execution time
+   // std::cout<< "Time to play game is "<< ""<< run_time << "\n" ;//Print runtime
     win_percent = number_wins/Nr;//calculate win percentage
+    std::cout << "win percent is" << win_percent << "\n";
 
     return win_percent;
 }
@@ -784,36 +783,163 @@ float genetic_fitness(std::vector<float> gene){
 
 
 
+/*
+Genetic algorithm below
 
-int main(){
-    float win_percent;
-    int Ns = 3;
-    bool symmetric = true;
-    int gene_length;
+*/
 
-    if(symmetric){
-        gene_length = Ns*Ns;
+
+
+
+
+
+// Define the fitness function
+float fitnessFunction(const Chromosome& chromosome) {
+    float win_percent = genetic_fitness(chromosome);
+    return win_percent;
+}
+
+// Function to initialize a population
+std::vector<Chromosome> initializePopulation(int populationSize, int chromosomeLength) {
+    std::vector<Chromosome> population(populationSize, Chromosome(chromosomeLength));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    for (auto& chromosome : population) {//create a new chromosome for each in the population
+        for (auto& gene : chromosome) {//While accessing that chromosome generate a gene
+            gene = dis(gen); // Random float between 0 and 1
+        }
     }
-    else{
-        gene_length = (Ns+Ns)*Ns;
+
+    return population;
+}
+
+// Function to evaluate the fitness of the entire population
+std::vector<float> evaluateFitness(const std::vector<Chromosome>& population) {
+    std::vector<float> fitnessValues(population.size());
+    for (size_t i = 0; i < population.size(); ++i) {
+        fitnessValues[i] = genetic_fitness(population[i]);
     }
-     std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0};//Test vector that represents the optimal three site strategy on check later
-     // Initialize the GA with a population of chromosomes containing 10 floats
+    return fitnessValues;
+}
+
+
+// Function to perform selection using tournament selection
+Chromosome tournamentSelection(const std::vector<Chromosome>& population,
+                               const std::vector<float>& fitnessValues, int tournamentSize) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, population.size() - 1);
+
+    // Randomly select chromosomes for the tournament
+    size_t bestIndex = dis(gen);
+    float bestFitness = fitnessValues[bestIndex];
+
+    for (int i = 1; i < tournamentSize; ++i) {
+        size_t candidateIndex = dis(gen);
+        float candidateFitness = fitnessValues[candidateIndex];
+        if (candidateFitness > bestFitness) {
+            bestIndex = candidateIndex;
+            bestFitness = candidateFitness;
+        }
+    }
+
+    return population[bestIndex];
+
+// Function to perform crossover between two chromosomes
+Chromosome crossover(const Chromosome& parent1, const Chromosome& parent2) {
+    std::random_device rd; //random gen
+    std::mt19937 gen(rd());//set seed for randomness
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    Chromosome offspring(parent1.size());//We create a vector that represents the offspring using our chromosone type that is a 1D vector
+    for (size_t i = 0; i < parent1.size(); ++i) {
+        // Use random value to decide whether to take from parent1 or parent2
+        offspring[i] = dis(gen) < 0.5 ? parent1[i] : parent2[i];//this is a conditional whether to pull from parent 1 or parent 2
+    }
+
+    return offspring;//return the offspring
+}
+
+// Function to perform mutation on a chromosome
+void mutate(Chromosome& chromosome, float mutationRate) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    for (auto& gene : chromosome) {
+        // Apply mutation with a given probability
+        if (dis(gen) < mutationRate) {
+            gene = dis(gen); // New random float between 0 and 1
+        }
+    }
+}
+
+int main() {
+
+    const int populationSize = 10;
+    const int chromosomeLength = 9;
+    const int generations = 3;
+    const float mutationRate = 0.01;
+    const int tournamentSize = 5;
+
+    // Initialize the population - two dimensional vector
+    std::vector<Chromosome> population = initializePopulation(populationSize, chromosomeLength);
+
+
+    std::vector<float> fitnessValues = evaluateFitness(population);
+
+    // Open a file stream to write results
+    std::ofstream outputFile("generation_results.txt");
+    if (!outputFile) {
+        std::cerr << "Error opening file for writing." << std::endl;
+        return 1;
+    }
+
+    // Write the header to the file
+    outputFile << "Generation\tBest Fitness\tBest Chromosome" << std::endl;
 
 
 
-    //std::cout << std::endl;
-    //Testing of the gene vector
-    win_percent = genetic_fitness(test_gene);
-    std::cout << "Win percentage is " << win_percent << "\n";
+    for (int generation = 0; generation < generations; ++generation) {
+        std::vector<Chromosome> newPopulation;
+        std::cout << "New generation";
+        // Create new population
+        while (newPopulation.size() < populationSize) {
+            // Perform selection to get parents
+            Chromosome parent1 = tournamentSelection(population, tournamentSize);
+            Chromosome parent2 = tournamentSelection(population, tournamentSize);
 
-   // Below is a game where we know the strategy
-   //win_percent = run_game();
-   //std::cout << "Win percentage is " << win_percent << "\n";
+            // Perform crossover to create offspring
+            Chromosome offspring = crossover(parent1, parent2);
 
-    //const char graph[] = "cyclic";//What graph are we playing on
-    //int counter = quantum_table_index(3,2,0,graph,true);
-   // std::cout << "counter" << counter;
+            // Perform mutation
+            mutate(offspring, mutationRate);
+
+            newPopulation.push_back(offspring);
+        }
+
+        population = std::move(newPopulation);
+
+        // Evaluate and print the best solution of the current generation
+        auto bestChromosome = *std::max_element(population.begin(), population.end(),
+            [](const Chromosome& a, const Chromosome& b) {
+                return fitnessFunction(a) < fitnessFunction(b);
+            });
+        float bestFitness = fitnessFunction(bestChromosome);
+        std::cout << "Generation " << generation + 1 << ": Best Fitness = " << bestFitness << std::endl;
+
+
+        //write the best solution to the file we have opened up
+        for (const auto& gene : bestChromosome) {
+            outputFile << gene << " ";
+        }
+        outputFile << std::endl;
+    }
+    // Close the file stream
+    outputFile.close();
 
     return 0;
 }
+

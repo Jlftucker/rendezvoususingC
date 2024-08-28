@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
-	<ActiveTarget name="Release" />
+	<ActiveTarget name="Debug" />
 	<File name="quantumcircuit.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="282" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="..\rendezvous\ideal.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
+	<File name="..\rendezvous\ideal.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2167" topLine="113" />
+			<Cursor1 position="27601" topLine="464" />
 		</Cursor>
 		<Folding>
 			<Collapse line="208" />
@@ -17,8 +17,6 @@
 			<Collapse line="326" />
 			<Collapse line="451" />
 			<Collapse line="556" />
-			<Collapse line="706" />
-			<Collapse line="744" />
 		</Folding>
 	</File>
 </CodeBlocks_layout_file>
