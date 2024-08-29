@@ -12,7 +12,8 @@
 #include "qpp/qpp.h"
 #include <boost/version.hpp>
 #include <typeinfo>
-#include "OpenGA.hpp"
+
+
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
 #endif
@@ -426,9 +427,15 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
         float prob = count / totalRuns; // Calculate probability
         probabilities.push_back(prob);  // Store probability
         }
-
-
     }
+
+     /*Debug statement to check the probability table
+     for(auto p:probabilities){
+        std::cout << p;
+    }
+    std::cout<< "new line" << "\n";
+    */
+
     return(probabilities);
 }
 
@@ -482,14 +489,15 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
     // Now apply rotations to the circuit
     //Player 1 rotations
     qc.gate(gt.RX(theta_ix), 0);
+    qc.gate(gt.RX(theta_jx), 1);
+
     qc.gate(gt.RY(theta_iy), 0);
-    qc.gate(gt.RX(theta_iz), 0);
+    qc.gate(gt.RY(theta_jy), 1);
 
     //player 2 rotations
 
-    qc.gate(gt.RX(theta_jx), 1);
-    qc.gate(gt.RY(theta_jy), 1);
-    qc.gate(gt.RX(theta_jz), 1);
+    qc.gate(gt.RZ(theta_iz), 0);
+    qc.gate(gt.RZ(theta_jz), 1);
 
     qc.measure({0,1});//attach measurement to classical bits
     // initialize the quantum engine with a circuit
@@ -529,7 +537,10 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
         probabilities.push_back(prob);  // Store probability
         }
 
-
+    //for(auto p:probabilities){Debug statement to check prob table
+      //  std::cout << p;
+   // }
+   // std::cout<< "new line" << "\n";
 
     return(probabilities);
 
@@ -547,9 +558,10 @@ std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, i
 //Each input vector will either be Ns (symmetric games) in length or 2Ns(asymmetric games) in length with each 3 numbers representing the three angles the player will rotate around the x y and z axis
     int a = 0; //counter for angle list
     std::vector<std::vector<float>> angle_vector;//2d vector that will hold arrays of angles -makes the positioning of the players much easier
+    //std::cout << "We are about to build angle vector"; Debug statement
 
     if(symmetric==true){//if we are playing a symmetric game
-        while(a<(gene.size() - 1), a= a+3){
+        while(a<(gene.size() - 1)){
             std::vector<float> site_angles;//Declare site angle array using vector - Declare inside loop to reinitialize it
             float theta_x = gene[a]*2*M_PI;
             float theta_y = gene[a+1]*2*M_PI;
@@ -560,10 +572,12 @@ std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, i
             site_angles.push_back(theta_z);
 
             angle_vector.push_back(site_angles);
+            a= a+3;
+            //std::cout << "Building the angles"; Debug Statement
         }
     }
     else{//if we are playing an asymmetric game
-        while(a<(gene.size() - 1), a= a+6){//player 1 angles - increase by 6 each time
+        while(a<(gene.size() - 1)){//player 1 angles - increase by 6 each time
             std::vector<float> site_angles;//Declare site angle array using vector - Declare inside loop to reinitialize it
              //Player 1 angles
             float theta_x1 = gene[a]*2*M_PI;
@@ -582,11 +596,12 @@ std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, i
             site_angles.push_back(theta_z2);
 
             angle_vector.push_back(site_angles);
+            a= a+6;
         }
 
     }
     //Now we need build our quantum table - luckily we can just copy this
-
+   // std::cout << "We are about to build the table"; Debug statement
     std::vector<std::vector<float>> quantum_table;
     // Set up random number generator
     std::random_device rd;
@@ -694,7 +709,7 @@ float run_game(){
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
     int Np =2;//Number of players variable
-    int Ns =4;//Number of sites in the game
+    int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
@@ -721,32 +736,26 @@ float run_game(){
 
         win_percent = number_wins/Nr;//calculate win percentage
 
-        return win_percent;
 
 
-    return 0;
+    return win_percent;
 }
 
 
-float genetic_fitness(std:vector<float> gene){
+float genetic_fitness(std::vector<float> gene, int Np, int Ns, int Nm, bool check_first, bool edge, const char graph[], const char strategy[], bool symmetric){
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
-    int Np =2;//Number of players variable
-    int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
-    int Nm = 1;//Number of moves players are allowed to make
-    bool check_first = true;//Check first or check later variant of the game
-    bool edge = false;//Are players allowed to meet one edges
-    const char graph[] = "cyclic";//What graph are we playing on
-    const char strategy[] = "quantum";//What Strategy are the players using
-    bool symmetric = true;
-
 
 
     clock_t start1 = clock();//Start clock
+    //std::cout << "Ping1"; Debug statement
     std::vector<std::vector<float>> quantum_table = genetic_quantum_table(gene,Ns,Np,symmetric,check_first);
+    //  std::cout << "Ping2"; Debug statement
     clock_t end1 = clock();//finish clock
     double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
+    std::cout << "Time to generate table is " << "" << table_time << "\n";
+
 
     clock_t start2 = clock();//Start clock
     number_wins = many_runs(graph,Np,edge,quantum_table,check_first,Ns,Nr,Nm,strategy);//run many_runs function - this is our fitness function
@@ -761,19 +770,50 @@ float genetic_fitness(std:vector<float> gene){
 
 
 
-
 int main(){
     float win_percent;
 
+    int gene_length;
 
 
+    // GAME SETTINGS
+    int Np =2;//Number of players variable
+    int Ns =3;//Number of sites in the game
+    int Nm = 1;//Number of moves players are allowed to make
+    bool check_first = true;//Check first or check later variant of the game
+    bool edge = false;//Are players allowed to meet one edges
+    const char graph[] = "cyclic";//What graph are we playing on
+    const char strategy[] = "quantum";//What Strategy are the players using
+    bool symmetric = true;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
+
+
+
+
+
+    /////
+
+
+
+
+    if(symmetric){
+        gene_length = Ns*Ns;
+    }
+    else{
+        gene_length = (Ns+Ns)*Ns;
+    }
+     std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0}; //Test vector that represents the optimal three site strategy on check later
+     // Initialize the GA with a population of chromosomes containing 10 floats
+
+
+
+     std::cout << std::endl;
+    //Testing of the gene vector
+   win_percent = genetic_fitness(test_gene, Np,Ns,Nm,check_first,edge,graph,strategy,symmetric);
     std::cout << "Win percentage is " << win_percent << "\n";
 
-    std::vector<float> test_gene = {0.0,0.0,0.0,0.0,M_PI/3,0.0,0.0,2*M_PI/3,0.0};
-
-    win_percent = genetic_fitness(test_gene);
-    std::cout << "Win percentage is " << win_percent << "\n";
-
+   // Below is a game where we know the strategy
+   // win_percent = run_game();
+    //std::cout << "Win percentage is " << win_percent << "\n";
 
 
     return 0;

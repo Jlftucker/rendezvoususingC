@@ -171,11 +171,11 @@ Chromosome tournamentSelection(const std::vector<Chromosome>& population, const 
 
 int main() {
     //std::cout<<"ping here"; Debug
-    const int populationSize = 100;
+    const int populationSize = 1000;
     const int chromosomeLength = 10;
-    const int generations = 50;
-    const float mutationRate = 0.01;
-    const int tournamentSize = 5;
+    const int generations = 1000;
+    const float mutationRate = 0.05;
+    const int tournamentSize = 50;
    // std::cout<<"ping here 1"; Debug
     // Initialize the first population - two dimensional vector containing our geneomes
     std::vector<Chromosome> population = initializePopulation(populationSize, chromosomeLength);
@@ -219,7 +219,7 @@ int main() {
 
 
         std::cout << "Generation " << generation + 1 << ": Best Fitness = " << best_fitness << "\n";
-        std::cout << "found at location" << counter;
+        std::cout << "found at location" << counter << "\n";
     }
 
     return 0;

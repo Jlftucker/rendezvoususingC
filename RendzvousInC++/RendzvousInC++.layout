@@ -7,16 +7,27 @@
 			<Cursor1 position="282" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="..\rendezvous\ideal.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
+	<File name="..\rendezvous\ideal.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="27601" topLine="464" />
+			<Cursor1 position="38046" topLine="394" />
 		</Cursor>
 		<Folding>
-			<Collapse line="208" />
-			<Collapse line="296" />
-			<Collapse line="326" />
-			<Collapse line="451" />
-			<Collapse line="556" />
+			<Collapse line="91" />
+			<Collapse line="151" />
+			<Collapse line="190" />
+			<Collapse line="216" />
+			<Collapse line="304" />
+			<Collapse line="334" />
+			<Collapse line="368" />
+			<Collapse line="459" />
+			<Collapse line="564" />
+			<Collapse line="664" />
+			<Collapse line="714" />
+			<Collapse line="744" />
+			<Collapse line="801" />
+			<Collapse line="855" />
+			<Collapse line="881" />
+			<Collapse line="946" />
 		</Folding>
 	</File>
 </CodeBlocks_layout_file>
