@@ -13,6 +13,10 @@
 #include <boost/version.hpp>
 #include <typeinfo>
 #include <numeric>
+#include <sstream> // stringstream
+#include <iomanip> // put_time
+
+
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -750,7 +754,7 @@ float genetic_fitness(std::vector<float> gene){
     int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
-    bool check_first = true;//Check first or check later variant of the game
+    bool check_first = false;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
@@ -936,6 +940,17 @@ Chromosome tournamentSelection(const std::vector<Chromosome>& population, const 
 }
 
 
+std::string return_current_time_and_date(){
+    auto now = std::chrono::system_clock::now();//Grab time clock
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);//turn clock time to real time
+
+    std::stringstream ss;//declare a new string stream
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M-%S");//format
+    return ss.str();//return time
+}
+
+
+
 
 int main() {
     float win_percent;
@@ -952,23 +967,40 @@ int main() {
     }
     //std::vector<float> test_gene = {0.0,0.0,0.0,0.0,0.166666,0.0,0.0,0.3333,0.0}; //Test vector that represents the optimal three site strategy on check later
      // Initial
-     std::ofstream outFile("output.txt");//Open the output file
+     std::string time = return_current_time_and_date();
+     std::cout << time;
+     std::string gene_filename = "geneoutput_"+time+".txt";
+     //std::cout << gene_filename;
+     std::string data_filename = "datafile_"+time+ ".csv";
+
+     std::string gene_directory = "data/genomes/";//gene directory
+     std::string data_directory = "data/fitness_vals/";
+
+     std::ofstream outFile(gene_directory+ gene_filename);//Open the output file for gene storage
+     std::ofstream dataFile(data_directory + data_filename);//open up data storage file
+
 
     //std::cout<<"ping here"; Debug
-    const int populationSize = 5;
+    const int populationSize = 8;
     const int chromosomeLength = gene_length;
-    const int generations = 2;
+    const int generations = 20;
     const float mutationRate = 0.05;
     const int tournamentSize = 3;
    // std::cout<<"ping here 1"; Debug
     // Initialize the first population - two dimensional vector containing our geneomes
     std::vector<Chromosome> population = initializePopulation(populationSize, chromosomeLength);
-    //std::cout<<"ping here 2"; Debug
     //Determine the fitness of our initial population
     std::vector<float> population_fitness = fitness_values(population);
+    std::cout<<"Initial population evaluated" << "\n";
+
+    dataFile << "Generation0" << ",";
+    for(auto n : population_fitness){
+        dataFile << n << ",";//write the first generation to a file after it has been generated
+    }
+        dataFile<< "\n";
     //std::cout<<"ping here 3"; Debug
     //For a set amount of generations
-    for (int generation = 0; generation < generations; ++generation) {
+    for (int generation = 1; generation < generations; ++generation) {
         std::vector<Chromosome> newPopulation;//Create an empty 2D vector to hold our new genome population
         // Create new population
         while (newPopulation.size() < populationSize) {//While the new population is less that the old population
@@ -989,17 +1021,19 @@ int main() {
 
         //Now we pick the best one
 
-        int counter = 0;
-        float best_fitness =0.0;
-
+        int counter = 0;//initialize counter variable
+        float best_fitness =0.0;//initialize fitness variable
+        dataFile << "Generation" << "" << generation << "," ;
         for(int j =0;j<population_fitness.size();++j){
             float fit = population_fitness[j];//pull out the fitness
+                dataFile << fit << ",";
 
             if(fit>best_fitness){
                 best_fitness = fit;
                 counter = j;
             }
         }
+        dataFile << "\n";//new line in data file
 
 
 
@@ -1020,6 +1054,7 @@ int main() {
 
     }
     outFile.close();//Close the file
+    dataFile.close();
     return 0;
 }
 
