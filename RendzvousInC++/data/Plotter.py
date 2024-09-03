@@ -2,38 +2,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 
-def plot_file(data, num_generations):#making a plotter func is easier here 
-    j = 0;#counter for elements being used
-    for i in data:  
-        gen_name = i[0]
-        num_elements = len(i) -2 #total population number, you have to minus the element containing the name off of it
-        start_counter = j*5
-        end_counter = start_counter +5
-        #print(i)
-        data_array = np.array(i[1:num_elements+1])
-        #print(data_array)
-        element_list = np.arange(start_counter, end_counter)
-        #print(element_list)
-        plt.plot(element_list,data_array, label = gen_name, marker='x')
-        j =j +1
+
+
+def setup_data_arrays(csv_data, num_generations,num_elements):
     
-    plt.legend()
-    return()
+    generation_name =np.array([])
+    total_num_elements = num_generations*(num_elements-2)
+    elements = np.array([])##minus two to take into account the name of the gen and the , at the end
+    #csv_data is a 2d list where each row represents a generation
+    for i in csv_data:#grab each row
+        gen_name=i[0]#name is the first element
+        j = 1#initialize counter at one to ignore the name
+        np.append(generation_name, gen_name)
+        while j<(num_elements-1):#we want it to be less than the total number because their is a space at the end of the csv file
+            value = float(i[j])
+            elements = np.append(elements, value)
+            j =j+1
+    
+   
+    element_list = np.arange(0,total_num_elements)
+    
+    return(elements, element_list)
 
 
-file_name='./fitness_vals/datafile_2024-09-02_14-15-06.csv'
-
-
-
-with open(file_name) as csvfile:
-    generations =[]#define new generation list
-    reader = csv.reader(csvfile, delimiter=',')
-    for row in reader:
-        generations.append(row)
-        #print(generations)
-            
-num_generations = len(generations)
-#print(num_generations)
-
-plot_file(generations,num_generations)
-plt.show

@@ -754,11 +754,11 @@ float genetic_fitness(std::vector<float> gene){
     int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
-    bool check_first = false;//Check first or check later variant of the game
+    bool check_first = true;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
-    bool symmetric = true;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
+    bool symmetric = false;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
     /////
 
 
@@ -956,7 +956,8 @@ int main() {
     float win_percent;
     int gene_length;
     int Ns = 3;
-    bool symmetric = true;
+    std::string name = "cycle3";
+    bool symmetric = false;
 
 
     if(symmetric){
@@ -969,9 +970,9 @@ int main() {
      // Initial
      std::string time = return_current_time_and_date();
      std::cout << time;
-     std::string gene_filename = "geneoutput_"+time+".txt";
+     std::string gene_filename = name +"geneoutput_"+time+".txt";
      //std::cout << gene_filename;
-     std::string data_filename = "datafile_"+time+ ".csv";
+     std::string data_filename = name+"datafile_"+time+ ".csv";
 
      std::string gene_directory = "data/genomes/";//gene directory
      std::string data_directory = "data/fitness_vals/";
@@ -984,8 +985,8 @@ int main() {
     const int populationSize = 8;
     const int chromosomeLength = gene_length;
     const int generations = 20;
-    const float mutationRate = 0.05;
-    const int tournamentSize = 3;
+    const float mutationRate = 0.1;
+    const int tournamentSize = 5;
    // std::cout<<"ping here 1"; Debug
     // Initialize the first population - two dimensional vector containing our geneomes
     std::vector<Chromosome> population = initializePopulation(populationSize, chromosomeLength);
