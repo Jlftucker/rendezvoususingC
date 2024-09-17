@@ -508,8 +508,8 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
 
     //player 2 rotations
 
-    qc.gate(gt.RZ(theta_iz), 0);
-    qc.gate(gt.RZ(theta_jz), 1);
+    //qc.gate(gt.RZ(theta_iz), 0);
+   // qc.gate(gt.RZ(theta_jz), 1);
 
     qc.measure({0,1});//attach measurement to classical bits
     // initialize the quantum engine with a circuit
