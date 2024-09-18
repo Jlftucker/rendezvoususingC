@@ -508,8 +508,8 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
 
     //player 2 rotations
 
-    //qc.gate(gt.RZ(theta_iz), 0);
-   // qc.gate(gt.RZ(theta_jz), 1);
+    qc.gate(gt.RZ(theta_iz), 0);
+    qc.gate(gt.RZ(theta_jz), 1);
 
     qc.measure({0,1});//attach measurement to classical bits
     // initialize the quantum engine with a circuit
@@ -752,13 +752,13 @@ float genetic_fitness(std::vector<float> gene){
     // GAME SETTINGS
     int Np =2;//Number of players variable
     int Ns =3;//Number of sites in the game
-    int Nr = 1000000;//Number of runs of the game
+    int Nr = 3000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = true;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
-    bool symmetric = false;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
+    bool symmetric = true;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
     /////
 
 
@@ -951,7 +951,7 @@ std::string return_current_time_and_date(){
 
 
 
-
+/*
 int main() {
     float win_percent;
     int gene_length;
@@ -1059,25 +1059,29 @@ int main() {
     return 0;
 }
 
+*/
 
 
 
-/*Redundant start code
+// DEbugging start code
 int main(){
-    ize the GA with a population of chromosomes containing 10 floats
+   // ize the GA with a population of chromosomes containing 10 floats
 
 
 
     // std::cout << std::endl;
     //Testing of the gene vector
-   //win_percent = genetic_fitness(test_gene, Np,Ns,Nm,check_first,edge,graph,strategy,symmetric);
+
+    std::vector<float> test_gene = {0.96688,0.262552,0.89326,0.081536,0.764002,0.323055,0.98588,0.758399,0.00876851};
+    float win_percent;
+
+    win_percent = genetic_fitness(test_gene);
    // std::cout << "Win percentage is " << win_percent << "\n";
 
    // Below is a game where we know the strategy
-     win_percent = run_game(Np,Ns,Nm,check_first,edge,graph,strategy,symmetric);
+     //win_percent = run_game(Np,Ns,Nm,check_first,edge,graph,strategy,symmetric);
      std::cout << "Win percentage is " << win_percent << "\n";
 
 
     return 0;
 }
-*/
