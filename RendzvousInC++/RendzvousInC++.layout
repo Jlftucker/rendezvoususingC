@@ -2,14 +2,9 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
-	<File name="quantumcircuit.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\rendezvous\ideal.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="282" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="..\rendezvous\ideal.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="17764" topLine="302" />
+			<Cursor1 position="24302" topLine="315" />
 		</Cursor>
 		<Folding>
 			<Collapse line="95" />
@@ -22,14 +17,18 @@
 			<Collapse line="568" />
 			<Collapse line="668" />
 			<Collapse line="718" />
+			<Collapse line="748" />
 			<Collapse line="805" />
 			<Collapse line="832" />
 			<Collapse line="859" />
 			<Collapse line="885" />
 			<Collapse line="919" />
 			<Collapse line="942" />
-			<Collapse line="962" />
-			<Collapse line="965" />
 		</Folding>
+	</File>
+	<File name="quantumcircuit.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="282" topLine="0" />
+		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

@@ -93,7 +93,7 @@ Ns -------- Integer --- Number of sites on the grap
 */
 
 
-int make_move(short int old_pos, short int coin, short int Ns, const char graph[]){
+int make_move(short int old_pos, char coin, short int Ns, const char graph[]){
     int new_pos; //Declare new position variable
     int number_choices;//Declare variable that will be used to decide array length
 
@@ -121,9 +121,9 @@ int make_move(short int old_pos, short int coin, short int Ns, const char graph[
             available_positions[1] = old_pos+1;
         }
 
-        if (coin == 0)
+        if (coin == '0')
             new_pos = available_positions[0];
-        else if (coin == 1)
+        else if (coin == '1')
         {
             new_pos = available_positions[1];
         }
@@ -223,9 +223,9 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
     bool win = false;//Declare boolean winning variable
     int i = 0;//Declare player counter
     int j =0;//Declare number of moves counter
-    int coin = 0;//Declare coin variable
+    char coin;//Declare coin variable
     int table_index; //Declare table index
-    std::vector<std::string> coins = {"00","01", "10", "00"};//declare string array for coins
+    std::vector<std::string> coins = {"00","01", "10", "11"};//declare string array for coins
     std::vector<float> probability_distro;
     std::string player_coins;
     char QuantumStrategy[] = "quantum";
@@ -245,7 +245,7 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
         int player2position = initial_pos[1];
 
         if(Classical_strategycheck ==0){//if classical coin then each player uses the same go to lowest coin and we declare outside the loop
-            coin =0;
+            coin ='0';
             //std::cout << "ping you are classical";
         }
         else if (Quantum_strategycheck == 0){// if quantum coin we need to declare a placeholder variable as the coin is a string of each players coin now so we need to split them
@@ -260,16 +260,23 @@ bool player_move(int initial_pos[],const char graph[], int Np, bool edge, std::v
 
             //Generate a random index
             int coin_index = dist(gen);
-           // std::cout << "coin index" << "" << coin_index << std::endl; Debug statement
+           // std::cout << "coin index" << "" << coin_index << std::endl; //Debug statement
             player_coins =coins[coin_index];
             //std::cout << "Player 1 coin " << player_coins[0]; Debug statement
         }
-
+            //std::cout<< player_coins;
         while(i <Np){//iterate through the number of players
-            if (Quantum_strategycheck == 0){coin = player_coins[i] - '0';}
+            if (Quantum_strategycheck == 0){
+                   coin = player_coins[i];
+                }
+            //std::cout << "Player" << i << " coin from the array is " << player_coins[i] << "\n";
+            //std::cout << "coin used is " << coin;}
             //std::cout << "The coin is now" << coin_used << std::endl;
-            //the coins are currently characters in a string array so held in ascII, by subtraction '0' we subtract that ascii code and get the number we want
+            //the coins are currently characters in a string array so held in
+            //std::cout << "player " << i << " position is " << initial_pos[i] << "\n";
+           // std::cout << "coin used is " << coin << "\n";
             new_pos[i] = make_move(initial_pos[i],coin,Ns,graph);//Set new_positions = to the intial positions
+           // std::cout << "New position is " << new_pos[i] << "\n";
             i++;
         }
 
@@ -480,10 +487,14 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
         //player 1` angles of rotation
         theta_ix = angle_vector[player1_position][0];
         theta_iy = angle_vector[player1_position][1];
+        //std::cout<< "Player 1 position is" << player1_position << "\n"; Debug to check the right angles are being picked for the right site
+        //std::cout<< "Player 1 angle is" << theta_iy <<"\n"; Debug to check the right angles are being picked for the right site
         theta_iz = angle_vector[player1_position][2];
         //player 2 angles of rotation
         theta_jx = angle_vector[player2_position][0];
         theta_jy = angle_vector[player2_position][1];
+        //std::cout<< "Player 2 position is" << player2_position << "\n";
+        //std::cout<< "Player 2 angle is" << theta_jy <<  "\n";
         theta_jz = angle_vector[player2_position][2];
     }
     else if(symmetric==false){// if in an asymmetric game
@@ -549,10 +560,15 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
         probabilities.push_back(prob);  // Store probability
         }
 
-    //for(auto p:probabilities){Debug statement to check prob table
-      //  std::cout << p;
-   // }
-   // std::cout<< "new line" << "\n";
+    /*Debug statement to check the probabilities are being generated correctly
+    std::cout << "Player 1 position" << player1_position << "\n";
+    std::cout << "Player 2 position" << player2_position << "\n";
+    for(auto p:probabilities){//Debug statement to check prob table
+        std::cout << p << " ";
+    }
+    std::cout<< "Next site combo" << "\n";
+    */
+
 
     return(probabilities);
 
@@ -720,7 +736,7 @@ float run_game(int Np, int Ns, int Nm, bool check_first, bool edge, const char g
 
     float win_percent;//declare win percent variable
     float number_wins;//declare number of wins variable
-    int Nr = 1000000;//Number of runs of the game
+    int Nr = 3;//Number of runs of the game
 
 
     // if we know the strategy then use the one programmed in
@@ -752,9 +768,9 @@ float genetic_fitness(std::vector<float> gene){
     // GAME SETTINGS
     int Np =2;//Number of players variable
     int Ns =3;//Number of sites in the game
-    int Nr = 3000000;//Number of runs of the game
+    int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
-    bool check_first = true;//Check first or check later variant of the game
+    bool check_first = false;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
@@ -951,13 +967,13 @@ std::string return_current_time_and_date(){
 
 
 
-/*
+
 int main() {
     float win_percent;
     int gene_length;
     int Ns = 3;
     std::string name = "cycle3";
-    bool symmetric = false;
+    bool symmetric = true;
 
 
     if(symmetric){
@@ -982,10 +998,10 @@ int main() {
 
 
     //std::cout<<"ping here"; Debug
-    const int populationSize = 8;
+    const int populationSize = 5;
     const int chromosomeLength = gene_length;
-    const int generations = 20;
-    const float mutationRate = 0.1;
+    const int generations = 30;
+    const float mutationRate = 0.23;
     const int tournamentSize = 5;
    // std::cout<<"ping here 1"; Debug
     // Initialize the first population - two dimensional vector containing our geneomes
@@ -1059,29 +1075,34 @@ int main() {
     return 0;
 }
 
-*/
 
 
 
+/*
 // DEbugging start code
 int main(){
    // ize the GA with a population of chromosomes containing 10 floats
 
+Quantum table_index debugger
+   const char graph[] = "cyclic";
+   int index = quantum_table_index(5,1,4,graph,false);
+   std::cout << "The index is " << index << "\n";
 
 
     // std::cout << std::endl;
     //Testing of the gene vector
 
-    std::vector<float> test_gene = {0.96688,0.262552,0.89326,0.081536,0.764002,0.323055,0.98588,0.758399,0.00876851};
-    float win_percent;
-
-    win_percent = genetic_fitness(test_gene);
-   // std::cout << "Win percentage is " << win_percent << "\n";
+    //std::vector<float> test_gene = {0.96688,0.262552,0.89326,0.081536,0.764002,0.323055,0.98588,0.758399,0.00876851}; //test gene from genetic algorithm
+    //float win_percent;
+     std::vector<float> test_gene = {0.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+     float win_percent = genetic_fitness(test_gene);
+     std::cout << "Win percentage is " << win_percent << "\n";
 
    // Below is a game where we know the strategy
      //win_percent = run_game(Np,Ns,Nm,check_first,edge,graph,strategy,symmetric);
-     std::cout << "Win percentage is " << win_percent << "\n";
+     //std::cout << "Win percentage is " << win_percent << "\n";
 
 
     return 0;
 }
+*/
