@@ -768,7 +768,7 @@ float genetic_fitness(std::vector<float> gene){
     // GAME SETTINGS
     int Np =2;//Number of players variable
     int Ns =3;//Number of sites in the game
-    int Nr = 1000000;//Number of runs of the game
+    int Nr = 2000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = false;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
@@ -998,11 +998,11 @@ int main() {
 
 
     //std::cout<<"ping here"; Debug
-    const int populationSize = 5;
+    const int populationSize = 15;
     const int chromosomeLength = gene_length;
-    const int generations = 30;
-    const float mutationRate = 0.23;
-    const int tournamentSize = 5;
+    const int generations = 100;
+    const float mutationRate = 0.05;
+    const int tournamentSize = 10;
    // std::cout<<"ping here 1"; Debug
     // Initialize the first population - two dimensional vector containing our geneomes
     std::vector<Chromosome> population = initializePopulation(populationSize, chromosomeLength);
