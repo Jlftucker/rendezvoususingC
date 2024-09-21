@@ -767,7 +767,7 @@ float genetic_fitness(std::vector<float> gene){
     float number_wins;//declare number of wins variable
     // GAME SETTINGS
     int Np =2;//Number of players variable
-    int Ns =5;//Number of sites in the game
+    int Ns =4;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = false;//Check first or check later variant of the game
@@ -971,7 +971,7 @@ std::string return_current_time_and_date(){
 int main() {
     float win_percent;
     int gene_length;
-    int Ns = 5;
+    int Ns = 4;
     std::string name = "cycle5";
     bool symmetric = true;
 
