@@ -468,7 +468,7 @@ std::vector<float> quantum_circuit_maker(const char graph[], int player1_positio
 Function - Genetic Quantum circuit
 */
 
-std::vector<float> genetic_quantum_circuit(int player1_position, int player2_position, int Ns, std::vector<float> probabilities, std::vector<std::vector<float>> angle_vector, bool symmetric){
+std::vector<float> genetic_quantum_circuit(int player1_position, int player2_position, int Ns, std::vector<float> probabilities, std::vector<std::vector<float>> angle_vector, bool symmetric, bool classical_search){
     float theta_ix;//player 1 x rotation
     float theta_iy;//player 1 y rotation
     float theta_iz;//player 1 z rotation
@@ -480,8 +480,12 @@ std::vector<float> genetic_quantum_circuit(int player1_position, int player2_pos
 
     //First create a bell state |00>+|11> - we can make this part of the genome actually (do later)
     QCircuit qc{2,2};//Create a quantum circuit with 2 qubits(1st number) and 2 classical bits(2nd number)
-    qc.gate(gt.H,0);//apply a Hadamard gate to the first qubit
-    qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
+
+    if (classical_search==false){//If we aren't searching classically we entangle the qubits
+        qc.gate(gt.H,0);//apply a Hadamard gate to the first qubit
+        qc.CTRL(gt.X,0,1);//Apply a controlled not gate between the first and second qubit
+    }
+
 
     if(symmetric==true){
         //player 1` angles of rotation
@@ -582,7 +586,7 @@ Function gene_quantum_circuit - A function that takes in a gene vector and build
 
 */
 
-std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, int Ns, int Np, bool symmetric,bool check_first){
+std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, int Ns, int Np, bool symmetric,bool check_first, bool classical_search){
 //Each input vector will either be Ns (symmetric games) in length or 2Ns(asymmetric games) in length with each 3 numbers representing the three angles the player will rotate around the x y and z axis
     int a = 0; //counter for angle list
     std::vector<std::vector<float>> angle_vector;//2d vector that will hold arrays of angles -makes the positioning of the players much easier
@@ -646,7 +650,7 @@ std::vector<std::vector<float>> genetic_quantum_table(std::vector<float> gene, i
             }
             else{
                 std::vector<float> probabilities;
-                probabilities = genetic_quantum_circuit(i,j,Ns,probabilities,angle_vector,symmetric);
+                probabilities = genetic_quantum_circuit(i,j,Ns,probabilities,angle_vector,symmetric, classical_search);
                 // Generate circuit result
                 quantum_table.push_back(probabilities);
             }
@@ -767,7 +771,7 @@ float genetic_fitness(std::vector<float> gene){
     float number_wins;//declare number of wins variable
     // GAME SETTINGS
     int Np =2;//Number of players variable
-    int Ns =4;//Number of sites in the game
+    int Ns =3;//Number of sites in the game
     int Nr = 1000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = false;//Check first or check later variant of the game
@@ -775,12 +779,13 @@ float genetic_fitness(std::vector<float> gene){
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
     bool symmetric = true;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
+    bool classical_search = true;// This will allow us to use the genetic algorithm to find the classical bound of rendezvous game
     /////
 
 
     //clock_t start1 = clock();//Start clock
     //std::cout << "Ping1"; Debug statement
-    std::vector<std::vector<float>> quantum_table = genetic_quantum_table(gene,Ns,Np,symmetric,check_first);
+    std::vector<std::vector<float>> quantum_table = genetic_quantum_table(gene,Ns,Np,symmetric,check_first, classical_search);
     //  std::cout << "Ping2"; Debug statement
     //clock_t end1 = clock();//finish clock
     //double table_time = (double)(end1 - start1) / CLOCKS_PER_SEC;//calculate execution time
@@ -971,8 +976,8 @@ std::string return_current_time_and_date(){
 int main() {
     float win_percent;
     int gene_length;
-    int Ns = 4;
-    std::string name = "cycle5";
+    int Ns = 3;
+    std::string name = "cycle3_classical";
     bool symmetric = true;
 
 
