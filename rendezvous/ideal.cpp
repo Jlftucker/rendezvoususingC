@@ -772,14 +772,14 @@ float genetic_fitness(std::vector<float> gene){
     // GAME SETTINGS
     int Np =2;//Number of players variable
     int Ns =3;//Number of sites in the game
-    int Nr = 1000000;//Number of runs of the game
+    int Nr = 10000000;//Number of runs of the game
     int Nm = 1;//Number of moves players are allowed to make
     bool check_first = false;//Check first or check later variant of the game
     bool edge = false;//Are players allowed to meet one edges
     const char graph[] = "cyclic";//What graph are we playing on
     const char strategy[] = "quantum";//What Strategy are the players using
     bool symmetric = true;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
-    bool classical_search = true;// This will allow us to use the genetic algorithm to find the classical bound of rendezvous game
+    bool classical_search = false;// This will allow us to use the genetic algorithm to find the classical bound of rendezvous game
     /////
 
 
@@ -977,7 +977,7 @@ int main() {
     float win_percent;
     int gene_length;
     int Ns = 3;
-    std::string name = "cycle3_classical";
+    std::string name = "cycle3_10millionruns";
     bool symmetric = true;
 
 

@@ -1,0 +1,4 @@
+1 million runs - calculate
+2million runs ~ 2hour 30 mins 
+5million runs ~ 6 hours
+10 million runs ~ 12 hours 20 mins
