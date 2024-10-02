@@ -972,7 +972,7 @@ std::string return_current_time_and_date(){
 
 
 
-
+/*
 int main() {
     float win_percent;
     int gene_length;
@@ -1080,7 +1080,7 @@ int main() {
     return 0;
 }
 
-
+*/
 
 
 /*
@@ -1111,3 +1111,115 @@ Quantum table_index debugger
     return 0;
 }
 */
+
+//std::vector<std::vector<float>>
+
+
+//Need a new function for generating each probability
+std::vector<float> genetic_quantum_multistep_circuit(std::vector<std::vector<float>> angle_vector,int Nm, int player_1position, int player_2position, bool classical_search){
+
+    // We need to first calculate how many qubits are needed, should be noted this only works for graphs which have two possible edges at the moment and this can be changed in the future with an if statement
+    int num_qubits = 2*Nm;
+    int num_classicalbits = 2*Nm;
+
+    //Now generate a circuit
+
+    QCircuit qc{num_qubits, num_classicalbits};
+
+    //Now we want to put the qubits into a ghz state |000..> + |111...>
+    //Put first qubit into a linear superposition and then cnot the rest
+    if(classical_search == false){//inside if statement
+        qc.gate(gt.H,0);
+        j= 0;//Counter variable for the num of qubits
+        while(j<num_qubits-1){//since qubit counter starts at zero
+            gc.gate(gt.X,j,j+1);
+            j = j+1;
+        }
+
+    }
+
+    //Now comes the tricky bit, how are we going to run a circuit a load of times
+    // I think we calculate the number of circuits run i.e for each site combination it is Ns
+
+
+    //First things first is that we rotate the first pair of qubits where the rotation is based off of where they have landed
+    qc.gate(gt.RY(angle_vector[player_1position][0]), 0);
+    qc.gate(gt.RY(angle_vector[player_2position][0]), 1);
+
+    // They then measure the circuit
+
+    Alice_firstqubit = qc.measure(0)
+    Bob_firstqubit = qc.measure(1)
+
+    std::cout << "Alice first qubit = "
+
+
+    return;
+
+}
+
+
+
+
+void genetic_quantum_table_multistep_maker(std::vector<float> gene, int Ns, int Np, int Nm,bool symmetric, bool check_first, bool classical_search){
+    // Firstly we need to iterate through the gene and create angle
+    int a = 0; //counter for angle list
+    std::vector<std::vector<float>> angle_vector;//2d vector that will hold arrays of angles -makes the positioning of the players much easier
+
+    if(symmetric == true){//if we are in a symmetric game
+        int angles_persite = Ns*(1+ pow(2,(Nm-1)));//angles per site based of the moves they could make
+
+        while(a < gene.size()-1){
+            std::vector<float> site_angles;// create a vector for site angles
+            int j = 0; //counter for angles per move
+            // need to iterate again for angles per move
+            while(j<angles_persite){// while j is less than the number of angles allowed on a site
+                float angle = gene[a+j]*2*M_PI;
+                site_angles.push_back(angle);
+                j =j +1;
+            }
+            angle_vector.push_back(site_angles);
+            a = a + angles_persite;
+        }
+    }
+
+
+
+
+
+return;
+}
+
+
+
+float genetic_fitness_multistep(std::vector<float> gene){
+    float win_percent;//declare win percent variable
+    float number_wins;//declare number of wins variable
+    // GAME SETTINGS
+    int Np =2;//Number of players variable
+    int Ns =3;//Number of sites in the game
+    int Nr = 10000000;//Number of runs of the game
+    int Nm = 2;//Number of moves players are allowed to make
+    bool check_first = false;//Check first or check later variant of the game
+    bool edge = false;//Are players allowed to meet one edges
+    const char graph[] = "cyclic";//What graph are we playing on
+    const char strategy[] = "quantum";//What Strategy are the players using
+    bool symmetric = true;// Symmetric strategy ? Only incorporated in genetic_fitness function right now
+    bool classical_search = false;// This will allow us to use the genetic algorithm to find the classical bound of rendezvous game
+    /////
+
+
+
+}
+
+
+
+
+
+// Debug code for the new multistep quantum table functions
+int main(){
+ std::vector<float> gene = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+ genetic_quantum_table_multistep_maker(gene,3,2,2,true,false,false);
+
+
+}
